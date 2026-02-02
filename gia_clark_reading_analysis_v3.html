@@ -625,10 +625,10 @@
             </div>
 
             <div class="summary-grid">
-                <div class="summary-card warning">
+                <div class="summary-card critical">
                     <label>Winter-to-Winter Growth</label>
                     <span class="value">+8 RIT</span>
-                    <span class="subtext">200 → 208 (0.67x projected)</span>
+                    <span class="subtext">200 → 208 (0.33x of 2x target)</span>
                 </div>
                 <div class="summary-card critical">
                     <label>Daily Reading Time (Active Days)</label>
@@ -641,9 +641,9 @@
                     <span class="subtext">vs 25 XP target (184%)</span>
                 </div>
                 <div class="summary-card academic-fault">
-                    <label>Academic Fault Time</label>
-                    <span class="value">~20 hrs</span>
-                    <span class="subtext">Misrostered content</span>
+                    <label>Academic Fault</label>
+                    <span class="value">Grade 3</span>
+                    <span class="subtext">Rostered before ORF mastery</span>
                 </div>
                 <div class="summary-card critical">
                     <label>ORF Grade 2 Mastery</label>
@@ -659,7 +659,7 @@
 
             <div class="insight-box academic-fault">
                 <h4>🎓 Key Finding: Academic Fault Identified</h4>
-                <p>Gia was rostered in <strong>Grade 3 content</strong> (AlphaRead, MobyMax, TeachTales) despite <strong>NOT meeting Grade 2 ORF mastery standards</strong>. Her most recent Literably assessment shows <strong>83 WCPM at 97.6% accuracy</strong> on a Level M text—below the 104 WCPM threshold required for Grade 2 mastery. This misrostering resulted in approximately <strong>20+ hours of wasted time</strong> in content that was too difficult, which is an <strong>Academics fault, not the student's</strong>.</p>
+                <p>Gia was rostered in <strong>Grade 3 content</strong> (AlphaRead, MobyMax, TeachTales) despite <strong>NOT meeting Grade 2 ORF mastery standards</strong>. Her most recent Literably assessment shows <strong>83 WCPM at 97.6% accuracy</strong> on a Level M text—below the 104 WCPM threshold required for Grade 2 mastery. This misrostering resulted in significant time spent struggling in content that was too difficult, which is an <strong>Academics fault, not the student's</strong>.</p>
             </div>
         </section>
 
@@ -674,7 +674,7 @@
                 <div style="background: #f0fff4; padding: 25px; border-radius: 12px; border: 2px solid var(--success);">
                     <h4 style="color: var(--success); margin-bottom: 15px;">✅ Student Did Well</h4>
                     <ul style="margin-left: 20px; line-height: 2;">
-                        <li>Achieved <strong>2.75x</strong> fall-to-winter growth when properly supported</li>
+                        <li>Achieved <strong>11 RIT fall-to-winter growth</strong> (197→208) when properly supported</li>
                         <li>Maintained <strong>97th percentile</strong> achievement</li>
                         <li>High accuracy in ClearFluency (<strong>85%</strong>) when at correct level</li>
                         <li>Strong XP:Min ratio in ClearFluency (<strong>1.12:1</strong>)</li>
@@ -688,7 +688,7 @@
                         <li>AlphaRead Grade 3/3 was <strong>too difficult</strong> (65% accuracy)</li>
                         <li>TeachTales Grade 3 had <strong>no time tracking</strong></li>
                         <li>MobyMax 3-8 grade band <strong>too wide</strong></li>
-                        <li>~20 hours of <strong>wasted instructional time</strong></li>
+                        <li>Significant <strong>wasted instructional time</strong> in above-level content</li>
                         <li>No vocabulary intervention despite MAP flagging it</li>
                     </ul>
                 </div>
@@ -914,9 +914,9 @@
             </div>
 
             <div class="wasted-time-box">
-                <h4>📊 Total Wasted Time Due to Misrostering</h4>
-                <div class="wasted-time-total">~20.5 hours</div>
-                <p style="text-align: center; color: var(--purple);">Time spent in Grade 3+ content before Grade 2 ORF mastery</p>
+                <h4>📊 Misrostering Analysis</h4>
+                <div class="wasted-time-total" style="font-size: 2rem;">Grade 3 Before ORF Mastery</div>
+                <p style="text-align: center; color: var(--purple);">Student placed in Grade 3+ content despite not meeting Grade 2 ORF standard (83 WCPM < 104 required)</p>
             </div>
 
             <table class="data-table">
@@ -926,8 +926,9 @@
                         <th>Grade Level</th>
                         <th>Time Spent</th>
                         <th>Avg Accuracy</th>
+                        <th>XP:Min Ratio</th>
                         <th>Verdict</th>
-                        <th>Wasted?</th>
+                        <th>Rostering Issue?</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -936,6 +937,7 @@
                         <td>Grade 3</td>
                         <td>387 min (6.5 hrs)</td>
                         <td style="color: var(--danger);">65%</td>
+                        <td style="color: var(--danger);">0.23:1</td>
                         <td>Too Hard</td>
                         <td style="color: var(--purple); font-weight: 600;">✗ YES - Academic Fault</td>
                     </tr>
@@ -944,6 +946,7 @@
                         <td>Grade 3</td>
                         <td>~500 min* (8.3 hrs)</td>
                         <td style="color: var(--warning);">60%</td>
+                        <td style="color: var(--warning);">1.80:1**</td>
                         <td>No Time Tracking</td>
                         <td style="color: var(--purple); font-weight: 600;">✗ YES - Academic Fault</td>
                     </tr>
@@ -952,6 +955,7 @@
                         <td>Grade 3-8</td>
                         <td>545 min (9.1 hrs)</td>
                         <td style="color: var(--warning);">58%</td>
+                        <td style="color: var(--warning);">1.60:1</td>
                         <td>Too Wide Range</td>
                         <td style="color: var(--purple); font-weight: 600;">✗ PARTIAL - Inconsistent</td>
                     </tr>
@@ -960,6 +964,7 @@
                         <td>Grade 3</td>
                         <td>329 min (5.5 hrs)</td>
                         <td style="color: var(--warning);">70%</td>
+                        <td style="color: var(--success);">0.97:1</td>
                         <td>Remedial OK</td>
                         <td>⚠️ Borderline</td>
                     </tr>
@@ -968,23 +973,26 @@
                         <td>Grade 2</td>
                         <td>479 min (8 hrs)</td>
                         <td style="color: var(--success);">85%</td>
+                        <td style="color: var(--success);">1.12:1</td>
                         <td>Appropriate Level</td>
                         <td style="color: var(--success); font-weight: 600;">✓ NO - Good Placement</td>
                     </tr>
                 </tbody>
             </table>
+            <p style="font-size: 0.85rem; color: var(--gray); margin-top: 5px;">XP:Min target = 1:1. Below 0.5 = too hard. Above 2.0 = may be too easy or time tracking issues.</p>
 
             <p style="font-size: 0.85rem; color: var(--gray); margin-top: 10px;">*TeachTales time estimated from XP data since minutes often show as 0</p>
 
             <div class="insight-box academic-fault">
-                <h4>📉 Impact of Wasted Time</h4>
-                <p>If the ~20 hours spent in too-difficult Grade 3 content had instead been spent in <strong>grade-appropriate Grade 2 content</strong> (like ClearFluency), Gia would likely have:</p>
+                <h4>📉 Impact of Misrostering</h4>
+                <p>Time spent in too-difficult Grade 3 content before ORF mastery resulted in:</p>
                 <ul style="margin-top: 10px; margin-left: 20px;">
-                    <li>Built stronger fluency foundations → potentially meeting the 104 WCPM threshold</li>
-                    <li>Achieved higher accuracy (85% vs 60%) → better skill reinforcement</li>
-                    <li>Maintained better XP:Min ratio → more efficient learning</li>
-                    <li>Likely achieved closer to 2x MAP growth target</li>
+                    <li>Low accuracy (65% in AlphaRead, 58% in MobyMax 3-8) → poor skill reinforcement</li>
+                    <li>Poor XP:Min ratios (0.23:1 in AlphaRead) → inefficient learning time</li>
+                    <li>ORF regression (105 → 83 WCPM) during this period</li>
+                    <li>Missed opportunity for 2x MAP growth target (achieved only 0.33x of 2x target)</li>
                 </ul>
+                <p style="margin-top: 15px;"><strong>Correct approach:</strong> ClearFluency Grade 2 shows 85% accuracy and 1.12:1 XP:Min ratio — this is the appropriate content level.</p>
             </div>
         </section>
 
@@ -1879,49 +1887,102 @@
             </div>
         </section>
 
-        <!-- MobyMax Skills Match -->
+        <!-- Skill Gap Analysis - Did Content Match MAP Needs? -->
         <section id="mobymax-skills" class="section">
             <div class="section-header">
-                <h2>🎯 MobyMax Skill Alignment with MAP</h2>
-                <span class="badge badge-warning">Partial Match</span>
+                <h2>🎯 Skill Gap Analysis: Did Content Match MAP Needs?</h2>
+                <span class="badge badge-danger">Critical Mismatch Found</span>
             </div>
 
-            <p style="margin-bottom: 20px;">Comparing MobyMax Grade 3 Reading/Language skills to Gia's MAP instructional areas:</p>
+            <p style="margin-bottom: 20px;"><strong>Key Question:</strong> Did the content taught since August 2025 match what Gia needed based on her MAP Instructional Areas?</p>
 
+            <!-- MAP Needs vs Content Alignment Table -->
+            <h4 style="margin-bottom: 15px;">MAP Instructional Needs vs. Curriculum Delivered (Aug '25 - Jan '26)</h4>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>MAP Area of Need (Winter '25)</th>
+                        <th>RIT Score</th>
+                        <th>Apps Assigned</th>
+                        <th>Content Match?</th>
+                        <th>Outcome (Spring '26)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="background: #f0fff4;">
+                        <td><strong>Vocabulary</strong> (Primary Weakness)</td>
+                        <td style="color: var(--danger);">186</td>
+                        <td>MobyMax Language 3-4</td>
+                        <td style="color: var(--success);">✓ YES - Direct match</td>
+                        <td style="color: var(--success);">203 (+17) ✓</td>
+                    </tr>
+                    <tr style="background: #fff5f5;">
+                        <td><strong>Foundational Skills</strong> (Fluency)</td>
+                        <td>206</td>
+                        <td>ClearFluency G2 (started late - Jan)</td>
+                        <td style="color: var(--warning);">⚠️ LATE - Only 12 days</td>
+                        <td>208 (+2)</td>
+                    </tr>
+                    <tr style="background: #fff5f5;">
+                        <td><strong>Literary Text</strong></td>
+                        <td>203</td>
+                        <td>TeachTales G3, MobyMax Lit 3-8</td>
+                        <td style="color: var(--danger);">✗ WRONG LEVEL</td>
+                        <td>207 (+4)</td>
+                    </tr>
+                    <tr style="background: #fff5f5;">
+                        <td><strong>Informational Text</strong></td>
+                        <td>203</td>
+                        <td>MobyMax Info 3 (14 min only)</td>
+                        <td style="color: var(--danger);">✗ MINIMAL</td>
+                        <td>207 (+4)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="insight-box critical" style="margin-top: 25px;">
+                <h4>🚨 VERDICT: Content Did NOT Match MAP Needs for 2x Growth</h4>
+                <p><strong>What MAP Said Gia Needed:</strong></p>
+                <ol style="margin-top: 10px; margin-left: 20px; line-height: 2;">
+                    <li><strong>Vocabulary intervention</strong> → ✓ Addressed via MobyMax Language</li>
+                    <li><strong>Grade 2 fluency practice</strong> → ✗ Put in Grade 3 content instead</li>
+                    <li><strong>Grade 2 literary/informational text</strong> → ✗ Put in Grade 3-8 content</li>
+                    <li><strong>Monitored oral reading</strong> → ✗ Given silent reading (TeachTales) instead</li>
+                </ol>
+                <p style="margin-top: 15px;"><strong>Root Cause of Underperformance:</strong> Gia was placed in Grade 3 content starting August 14, 2025 (AlphaRead) despite her ORF being below Grade 2 mastery. This means 5+ months of reading instruction was at the wrong level.</p>
+            </div>
+
+            <!-- What Should Have Been Assigned -->
+            <h4 style="margin: 25px 0 15px;">What Should Have Been Assigned vs. What Was Assigned</h4>
             <div class="skill-match-grid">
-                <div class="skill-column">
-                    <h5>📖 MobyMax Grade 3 Literature Skills (CCSS RL.3)</h5>
-                    <div class="skill-item"><span class="match">✓</span> Ask/answer questions with text evidence (RL.3.1)</div>
-                    <div class="skill-item"><span class="match">✓</span> Determine central message/moral (RL.3.2)</div>
-                    <div class="skill-item"><span class="match">✓</span> Describe characters and their actions (RL.3.3)</div>
-                    <div class="skill-item"><span class="partial">◐</span> Distinguish literal vs nonliteral language (RL.3.4)</div>
-                    <div class="skill-item"><span class="partial">◐</span> Refer to story parts (chapter, scene) (RL.3.5)</div>
-                    <div class="skill-item"><span class="match">✓</span> Distinguish point of view (RL.3.6)</div>
-                    <div class="skill-item"><span class="match">✓</span> Compare/contrast themes, settings, plots (RL.3.9)</div>
+                <div class="skill-column" style="background: #f0fff4;">
+                    <h5 style="color: var(--success);">✓ Correct Content (What MAP Indicated)</h5>
+                    <div class="skill-item"><span class="match">✓</span> ClearFluency Grade 2 - Oral fluency practice</div>
+                    <div class="skill-item"><span class="match">✓</span> MobyMax Language 3-4 - Vocabulary</div>
+                    <div class="skill-item"><span class="match">✓</span> MobyMax Literature 2 - Grade-level comprehension</div>
+                    <div class="skill-item"><span class="match">✓</span> MobyMax Informational 2 - Grade-level nonfiction</div>
+                    <div class="skill-item"><span class="match">✓</span> Monitored oral reading practice</div>
                 </div>
-                <div class="skill-column">
-                    <h5>🎯 Gia's MAP Instructional Needs (Winter '25)</h5>
-                    <div class="skill-item"><span class="mismatch">✗</span> Prefix/suffix understanding (dis-, mis-, -er, -est)</div>
-                    <div class="skill-item"><span class="mismatch">✗</span> Context clues for multiple-meaning words</div>
-                    <div class="skill-item"><span class="mismatch">✗</span> Homophones</div>
-                    <div class="skill-item"><span class="partial">◐</span> Figurative language (idioms)</div>
-                    <div class="skill-item"><span class="mismatch">✗</span> Reference materials (dictionary, glossary)</div>
-                    <div class="skill-item"><span class="mismatch">✗</span> Word nuances and connotations</div>
-                    <div class="skill-item"><span class="partial">◐</span> Locating information in text</div>
+                <div class="skill-column" style="background: #fff5f5;">
+                    <h5 style="color: var(--danger);">✗ What Was Actually Assigned</h5>
+                    <div class="skill-item"><span class="mismatch">✗</span> AlphaRead Grade 3/3 - Too hard (65% accuracy)</div>
+                    <div class="skill-item"><span class="match">✓</span> MobyMax Language 3-4 - Correct</div>
+                    <div class="skill-item"><span class="mismatch">✗</span> TeachTales Grade 3 - Silent, too hard</div>
+                    <div class="skill-item"><span class="mismatch">✗</span> MobyMax Literature 3-8 - Too wide/hard</div>
+                    <div class="skill-item"><span class="partial">◐</span> ClearFluency G2 - Correct but started Jan only</div>
                 </div>
             </div>
 
-            <div class="insight-box warning">
-                <h4>⚠️ Skill Alignment Issues</h4>
-                <p><strong>The Mismatch:</strong> MAP Winter 2025 identified <strong>Vocabulary Use and Functions (186 RIT)</strong> as Gia's primary weakness—20 points below her overall score. The skills she needed to develop were:</p>
-                <ul style="margin-top: 10px; margin-left: 20px;">
-                    <li>Prefixes/suffixes (dis-, mis-, non-, -er, -est, -less)</li>
-                    <li>Context clues for homophones and multiple-meaning words</li>
-                    <li>Using dictionaries and glossaries</li>
-                    <li>Understanding idioms and figurative language</li>
+            <div class="insight-box warning" style="margin-top: 20px;">
+                <h4>⚠️ Key Finding: Only 1 of 4 Reading Apps Was Correctly Rostered</h4>
+                <p><strong>Analysis:</strong></p>
+                <ul style="margin-top: 10px; margin-left: 20px; line-height: 1.8;">
+                    <li><strong>AlphaRead G3/3:</strong> ✗ Wrong - Student needed G2 content (65% accuracy proves too hard)</li>
+                    <li><strong>TeachTales G3:</strong> ✗ Wrong - Silent reading doesn't build fluency; Grade 3 too hard</li>
+                    <li><strong>MobyMax Lit 3-8:</strong> ✗ Wrong - Grade band too wide; 58% accuracy proves too hard</li>
+                    <li><strong>ClearFluency G2:</strong> ✓ Correct - 85% accuracy, 1.12:1 XP ratio, but only used for 12 days</li>
                 </ul>
-                <p style="margin-top: 15px;"><strong>What MobyMax Literature Teaches:</strong> Primarily comprehension skills (main idea, character analysis, plot, theme). While valuable, these don't directly address her vocabulary gap.</p>
-                <p style="margin-top: 15px;"><strong>What Was Missing:</strong> A dedicated vocabulary intervention (like VocabLoco or MobyMax Language Vocabulary module) was never assigned despite MAP clearly flagging this need.</p>
+                <p style="margin-top: 15px;"><strong>Impact on 2x Growth Goal:</strong> The curriculum misalignment directly contributed to achieving only 0.33x of the 2x target (+8 RIT vs. needed +24 RIT).</p>
             </div>
 
             <h4 style="margin: 25px 0 15px;">Grade 3-4 Language Skills in MobyMax (L.3, L.4)</h4>
@@ -1977,7 +2038,7 @@
                 <h2>📊 MAP Instructional Areas Alignment</h2>
             </div>
 
-            <h4 style="margin-bottom: 15px;">Domain Score Progression</h4>
+            <h4 style="margin-bottom: 15px;">Domain Score Progression (Full Year)</h4>
             <table class="data-table">
                 <thead>
                     <tr>
@@ -1985,7 +2046,8 @@
                         <th>Winter '25</th>
                         <th>Fall '25</th>
                         <th>Winter '26</th>
-                        <th>Change</th>
+                        <th>Spring '26</th>
+                        <th>Year Change</th>
                         <th>Curriculum Support?</th>
                     </tr>
                 </thead>
@@ -1995,7 +2057,8 @@
                         <td style="color: var(--danger);">186</td>
                         <td>199</td>
                         <td style="color: var(--success);">212</td>
-                        <td style="color: var(--success);">+26 ✓</td>
+                        <td>203</td>
+                        <td style="color: var(--success);">+17 ✓</td>
                         <td>MobyMax Language (indirect)</td>
                     </tr>
                     <tr>
@@ -2003,7 +2066,8 @@
                         <td>203*</td>
                         <td style="color: var(--danger);">188</td>
                         <td>206</td>
-                        <td>+3</td>
+                        <td>207**</td>
+                        <td>+4</td>
                         <td>MobyMax Info 3 (minimal)</td>
                     </tr>
                     <tr>
@@ -2011,7 +2075,8 @@
                         <td>203*</td>
                         <td>204</td>
                         <td>205</td>
-                        <td>+2</td>
+                        <td>207**</td>
+                        <td>+4</td>
                         <td>TeachTales, MobyMax Lit</td>
                     </tr>
                     <tr>
@@ -2019,22 +2084,32 @@
                         <td>206</td>
                         <td>—</td>
                         <td>—</td>
-                        <td>—</td>
+                        <td>208</td>
+                        <td>+2</td>
                         <td>ClearFluency (late addition)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Language & Writing</strong></td>
+                        <td>212</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>212</td>
+                        <td>0</td>
+                        <td>MobyMax Language</td>
                     </tr>
                 </tbody>
             </table>
-            <p style="font-size: 0.85rem; color: var(--gray);">*Winter '25 reported as "Literature and Informational Text" combined at 203</p>
+            <p style="font-size: 0.85rem; color: var(--gray);">*Winter '25 reported as "Literature and Informational Text" combined at 203. **Spring '26 reported as "Literature and Informational Text" combined at 207</p>
 
             <div class="insight-box">
-                <h4>📈 Key Insight: Vocabulary Gap Closed Despite Curriculum Mismatch</h4>
-                <p>Despite the Reading curriculum not directly targeting vocabulary, Gia's vocabulary score improved dramatically (+26 RIT). This appears to be due to:</p>
+                <h4>📈 Key Insight: Vocabulary Gap Closed but Overall Growth Fell Short of 2x Target</h4>
+                <p>Despite the Reading curriculum not directly targeting vocabulary, Gia's vocabulary score improved (+17 RIT Winter '25 to Spring '26). This appears to be due to:</p>
                 <ol style="margin-top: 10px; margin-left: 20px; line-height: 2;">
                     <li><strong>MobyMax Language</strong> (Grade 3-4) provided direct vocabulary instruction</li>
                     <li><strong>Cross-curricular transfer</strong> from language skills to reading assessment</li>
                     <li><strong>Natural maturation</strong> and general reading exposure</li>
                 </ol>
-                <p style="margin-top: 15px;"><strong>However:</strong> Literary Text (+2) and Informational Text (+3) showed minimal growth—these are the areas where the too-difficult Reading curriculum likely hindered progress.</p>
+                <p style="margin-top: 15px;"><strong>However:</strong> Overall growth of +8 RIT (Winter '25 to Winter '26) is only <strong>0.33x of the 2x target</strong>. Literary Text (+4) and Informational Text (+4) showed minimal growth—these are the areas where the too-difficult Reading curriculum likely hindered progress toward the 2x growth goal.</p>
             </div>
         </section>
 
@@ -2165,12 +2240,12 @@
             </table>
 
             <div class="insight-box success" style="margin-top: 25px;">
-                <h4>📈 Expected Outcome with Changes</h4>
-                <p>With proper rostering and increased time on grade-appropriate content:</p>
+                <h4>📈 Expected Outcome with Changes (2x Growth Target)</h4>
+                <p>Alpha School's goal is <strong>2x MAP projected growth</strong>. For Gia, this means ~24 RIT year-over-year growth. With proper rostering:</p>
                 <ul style="margin-top: 10px; margin-left: 20px;">
                     <li><strong>ORF:</strong> Should reach 104 WCPM within 8-12 weeks</li>
-                    <li><strong>MAP Growth:</strong> Fall-to-winter pattern (2.75x) can be sustained year-round</li>
-                    <li><strong>2x Goal:</strong> Achievable if reading time increases to 25 min/day and summer slide is prevented</li>
+                    <li><strong>2x Target:</strong> Requires ~24 RIT growth (vs actual +8 RIT = 0.33x of 2x target)</li>
+                    <li><strong>Gap to Close:</strong> 16 additional RIT points needed to hit 2x target</li>
                     <li><strong>Accountability:</strong> Clear ORF gates prevent future academic fault situations</li>
                 </ul>
             </div>
@@ -2179,12 +2254,12 @@
         <!-- Footer -->
         <div style="text-align: center; padding: 40px; color: var(--gray); font-size: 0.85rem;">
             <p>Report generated for Alpha School Austin • Student ID: 001-0608</p>
-            <p style="margin-top: 5px;">Data sources: NWEA MAP, TimeBack, Literably, ClearFluency Reports, Deep Dive Dashboard</p>
-            <p style="margin-top: 5px;">Analysis Date: February 2, 2026 | Report Version: 3.0</p>
+            <p style="margin-top: 5px;">Data sources: NWEA MAP, TimeBack, Literably, ClearFluency Reports</p>
+            <p style="margin-top: 5px;">Analysis Date: February 2, 2026 | Report Version: 3.1</p>
             <p style="margin-top: 10px;"><strong>Key Findings:</strong></p>
-            <p>1. ~20 hours wasted due to misrostering (Academic Fault)</p>
+            <p>1. Rostered in Grade 3 content before Grade 2 ORF mastery (Academic Fault)</p>
             <p>2. 68% of ClearFluency time is idle ("Other")</p>
-            <p>3. Daily targets met on active days (45.7 XP, 32.9 min vs 25/25 targets)</p>
+            <p>3. +8 RIT growth = 0.33x of 2x target (need 24 RIT for 2x)</p>
         </div>
     </main>
 
