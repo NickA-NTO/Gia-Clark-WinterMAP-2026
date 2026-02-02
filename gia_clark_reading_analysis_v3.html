@@ -1,0 +1,2226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gia Clark - Reading Deep Dive Analysis v3</title>
+    <style>
+        :root {
+            --primary: #1a365d;
+            --secondary: #2c5282;
+            --accent: #3182ce;
+            --success: #38a169;
+            --warning: #d69e2e;
+            --danger: #e53e3e;
+            --light: #f7fafc;
+            --dark: #1a202c;
+            --gray: #718096;
+            --purple: #805ad5;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        /* Navigation */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 260px;
+            height: 100vh;
+            background: var(--primary);
+            color: white;
+            padding: 20px 0;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .nav-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+
+        .nav-header h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .nav-header p {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        .nav-section {
+            padding: 10px 20px;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.6;
+            margin-top: 15px;
+        }
+
+        .nav a {
+            display: block;
+            padding: 10px 20px;
+            color: white;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav a:hover, .nav a.active {
+            background: rgba(255,255,255,0.1);
+            border-left-color: var(--accent);
+        }
+
+        .nav a .indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .indicator.red { background: var(--danger); }
+        .indicator.yellow { background: var(--warning); }
+        .indicator.green { background: var(--success); }
+        .indicator.purple { background: var(--purple); }
+
+        /* Main Content */
+        .main {
+            margin-left: 260px;
+            padding: 30px 40px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 40px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .header-meta {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .header-meta-item {
+            background: rgba(255,255,255,0.15);
+            padding: 12px 20px;
+            border-radius: 8px;
+        }
+
+        .header-meta-item label {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            display: block;
+        }
+
+        .header-meta-item span {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        /* Section Styles */
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--light);
+        }
+
+        .section-header h2 {
+            font-size: 1.4rem;
+            color: var(--primary);
+        }
+
+        .badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .badge-danger { background: #fed7d7; color: var(--danger); }
+        .badge-warning { background: #fefcbf; color: #975a16; }
+        .badge-success { background: #c6f6d5; color: #276749; }
+        .badge-info { background: #bee3f8; color: #2c5282; }
+        .badge-purple { background: #e9d8fd; color: #553c9a; }
+
+        /* Summary Cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-left: 4px solid var(--accent);
+        }
+
+        .summary-card.critical { border-left-color: var(--danger); }
+        .summary-card.warning { border-left-color: var(--warning); }
+        .summary-card.success { border-left-color: var(--success); }
+        .summary-card.academic-fault { border-left-color: var(--purple); background: #faf5ff; }
+
+        .summary-card label {
+            font-size: 0.8rem;
+            color: var(--gray);
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .summary-card .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .summary-card .subtext {
+            font-size: 0.8rem;
+            color: var(--gray);
+            margin-top: 3px;
+        }
+
+        /* Data Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .data-table th {
+            background: var(--light);
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        .data-table tr:hover {
+            background: #f8fafc;
+        }
+
+        .data-table tr.fault-row {
+            background: #faf5ff;
+        }
+
+        .data-table tr.fault-row:hover {
+            background: #f3e8ff;
+        }
+
+        /* Insight Box */
+        .insight-box {
+            background: linear-gradient(135deg, #ebf8ff, #bee3f8);
+            border-left: 4px solid var(--accent);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .insight-box.critical {
+            background: linear-gradient(135deg, #fff5f5, #fed7d7);
+            border-left-color: var(--danger);
+        }
+
+        .insight-box.warning {
+            background: linear-gradient(135deg, #fffff0, #fefcbf);
+            border-left-color: var(--warning);
+        }
+
+        .insight-box.success {
+            background: linear-gradient(135deg, #f0fff4, #c6f6d5);
+            border-left-color: var(--success);
+        }
+
+        .insight-box.academic-fault {
+            background: linear-gradient(135deg, #faf5ff, #e9d8fd);
+            border-left-color: var(--purple);
+        }
+
+        .insight-box h4 {
+            margin-bottom: 10px;
+            color: var(--dark);
+        }
+
+        /* Verdict Box */
+        .verdict-box {
+            border: 3px solid;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+
+        .verdict-box.effective {
+            border-color: var(--success);
+            background: #f0fff4;
+        }
+
+        .verdict-box.ineffective {
+            border-color: var(--danger);
+            background: #fff5f5;
+        }
+
+        .verdict-box.mixed {
+            border-color: var(--warning);
+            background: #fffff0;
+        }
+
+        .verdict-box.too-hard {
+            border-color: var(--purple);
+            background: #faf5ff;
+        }
+
+        .verdict-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .verdict-icon {
+            font-size: 2rem;
+        }
+
+        .verdict-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        /* Bar Charts */
+        .bar-chart {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .bar-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .bar-label {
+            width: 140px;
+            font-size: 0.85rem;
+            text-align: right;
+        }
+
+        .bar-container {
+            flex: 1;
+            height: 28px;
+            background: #e2e8f0;
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .bar {
+            height: 100%;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .bar.blue { background: linear-gradient(90deg, #4299e1, #3182ce); }
+        .bar.green { background: linear-gradient(90deg, #48bb78, #38a169); }
+        .bar.yellow { background: linear-gradient(90deg, #ecc94b, #d69e2e); }
+        .bar.red { background: linear-gradient(90deg, #fc8181, #e53e3e); }
+        .bar.purple { background: linear-gradient(90deg, #b794f4, #805ad5); }
+
+        /* Comparison Boxes */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .comparison-box {
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .comparison-box.expected { background: #e2e8f0; }
+        .comparison-box.actual { background: #fed7d7; }
+        .comparison-box.actual.positive { background: #c6f6d5; }
+
+        .comparison-box label {
+            font-size: 0.8rem;
+            color: var(--gray);
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .comparison-box .value {
+            font-size: 2.2rem;
+            font-weight: 700;
+        }
+
+        /* App Analysis Cards */
+        .app-analysis {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .app-analysis-header {
+            background: var(--light);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .app-analysis-header h4 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .app-analysis-body {
+            padding: 20px;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .metric-item {
+            text-align: center;
+            padding: 15px;
+            background: var(--light);
+            border-radius: 8px;
+        }
+
+        .metric-item .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .metric-item label {
+            font-size: 0.75rem;
+            color: var(--gray);
+            display: block;
+            margin-top: 5px;
+        }
+
+        .metric-item.good .value { color: var(--success); }
+        .metric-item.warning .value { color: var(--warning); }
+        .metric-item.bad .value { color: var(--danger); }
+        .metric-item.too-easy .value { color: var(--purple); }
+
+        /* ORF Standards Table */
+        .orf-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .orf-table th, .orf-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .orf-table th {
+            background: var(--primary);
+            color: white;
+            font-size: 0.85rem;
+        }
+
+        .orf-table tr.not-met {
+            background: #fff5f5;
+        }
+
+        .orf-table tr.met {
+            background: #f0fff4;
+        }
+
+        /* Wasted Time Calculator */
+        .wasted-time-box {
+            background: linear-gradient(135deg, #faf5ff, #e9d8fd);
+            border: 2px solid var(--purple);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+
+        .wasted-time-box h4 {
+            color: var(--purple);
+            margin-bottom: 15px;
+        }
+
+        .wasted-time-total {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--purple);
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        /* Skill Match Grid */
+        .skill-match-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .skill-column {
+            background: var(--light);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .skill-column h5 {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .skill-item {
+            padding: 8px 0;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .skill-item .match { color: var(--success); }
+        .skill-item .partial { color: var(--warning); }
+        .skill-item .mismatch { color: var(--danger); }
+
+        /* Print Styles */
+        @media print {
+            .nav { display: none; }
+            .main { margin-left: 0; }
+        }
+
+        @media (max-width: 768px) {
+            .nav { width: 100%; height: auto; position: relative; }
+            .main { margin-left: 0; }
+            .comparison-grid, .skill-match-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-header">
+            <h2>📊 Deep Dive Report v3</h2>
+            <p>Gia Clark • Grade 2 • Reading</p>
+        </div>
+
+        <div class="nav-section">Overview</div>
+        <a href="#executive-summary"><span class="indicator red"></span>Executive Summary</a>
+        <a href="#accountability"><span class="indicator purple"></span>Accountability Analysis</a>
+        <a href="#active-days"><span class="indicator yellow"></span>Active School Days</a>
+
+        <div class="nav-section">ORF & Rostering</div>
+        <a href="#orf-standards"><span class="indicator red"></span>ORF Standards Check</a>
+        <a href="#wasted-time"><span class="indicator purple"></span>Wasted Time (Academic Fault)</a>
+
+        <div class="nav-section">App-by-App Analysis</div>
+        <a href="#xp-ratio"><span class="indicator yellow"></span>XP:Minutes Ratio</a>
+        <a href="#alpharead"><span class="indicator red"></span>AlphaRead Analysis</a>
+        <a href="#clearfluency"><span class="indicator yellow"></span>ClearFluency Deep Dive</a>
+        <a href="#teachtales"><span class="indicator red"></span>TeachTales Analysis</a>
+        <a href="#mobymax"><span class="indicator yellow"></span>MobyMax Analysis</a>
+
+        <div class="nav-section">Skill Alignment</div>
+        <a href="#mobymax-skills"><span class="indicator yellow"></span>MobyMax Skill Match</a>
+        <a href="#map-alignment"><span class="indicator yellow"></span>MAP Instructional Areas</a>
+
+        <div class="nav-section">Conclusions</div>
+        <a href="#recommendations"><span class="indicator green"></span>Recommendations</a>
+        <a href="#curriculum-changes"><span class="indicator green"></span>Curriculum Changes</a>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main">
+        <!-- Header -->
+        <div class="header">
+            <h1>Reading Performance Deep Dive v3</h1>
+            <p>Enhanced analysis with ClearFluency deep dive, active school days calculation, XP ratios, and ORF standards verification</p>
+            <div class="header-meta">
+                <div class="header-meta-item">
+                    <label>Student</label>
+                    <span>Gia Clark</span>
+                </div>
+                <div class="header-meta-item">
+                    <label>Grade Level</label>
+                    <span>Grade 2</span>
+                </div>
+                <div class="header-meta-item">
+                    <label>Analysis Period</label>
+                    <span>Aug 2025 → Jan 2026</span>
+                </div>
+                <div class="header-meta-item">
+                    <label>ORF Status</label>
+                    <span style="color: #fed7d7;">Not Grade 2 Ready</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Executive Summary -->
+        <section id="executive-summary" class="section">
+            <div class="section-header">
+                <h2>📋 Executive Summary</h2>
+                <span class="badge badge-danger">Below Expected Growth</span>
+            </div>
+
+            <div class="summary-grid">
+                <div class="summary-card warning">
+                    <label>Winter-to-Winter Growth</label>
+                    <span class="value">+8 RIT</span>
+                    <span class="subtext">200 → 208 (0.67x projected)</span>
+                </div>
+                <div class="summary-card critical">
+                    <label>Daily Reading Time (Active Days)</label>
+                    <span class="value">34 min</span>
+                    <span class="subtext">vs 25 min target (136%)</span>
+                </div>
+                <div class="summary-card warning">
+                    <label>Daily XP (Active Days)</label>
+                    <span class="value">46 XP</span>
+                    <span class="subtext">vs 25 XP target (184%)</span>
+                </div>
+                <div class="summary-card academic-fault">
+                    <label>Academic Fault Time</label>
+                    <span class="value">~20 hrs</span>
+                    <span class="subtext">Misrostered content</span>
+                </div>
+                <div class="summary-card critical">
+                    <label>ORF Grade 2 Mastery</label>
+                    <span class="value">NOT MET</span>
+                    <span class="subtext">83 WCPM < 104 required</span>
+                </div>
+                <div class="summary-card warning">
+                    <label>ClearFluency "Other" Time</label>
+                    <span class="value">68%</span>
+                    <span class="subtext">Only 32% on learning tasks</span>
+                </div>
+            </div>
+
+            <div class="insight-box academic-fault">
+                <h4>🎓 Key Finding: Academic Fault Identified</h4>
+                <p>Gia was rostered in <strong>Grade 3 content</strong> (AlphaRead, MobyMax, TeachTales) despite <strong>NOT meeting Grade 2 ORF mastery standards</strong>. Her most recent Literably assessment shows <strong>83 WCPM at 97.6% accuracy</strong> on a Level M text—below the 104 WCPM threshold required for Grade 2 mastery. This misrostering resulted in approximately <strong>20+ hours of wasted time</strong> in content that was too difficult, which is an <strong>Academics fault, not the student's</strong>.</p>
+            </div>
+        </section>
+
+        <!-- Accountability Analysis -->
+        <section id="accountability" class="section">
+            <div class="section-header">
+                <h2>⚖️ Accountability Analysis</h2>
+                <span class="badge badge-purple">Academic Fault Breakdown</span>
+            </div>
+
+            <div class="comparison-grid">
+                <div style="background: #f0fff4; padding: 25px; border-radius: 12px; border: 2px solid var(--success);">
+                    <h4 style="color: var(--success); margin-bottom: 15px;">✅ Student Did Well</h4>
+                    <ul style="margin-left: 20px; line-height: 2;">
+                        <li>Achieved <strong>2.75x</strong> fall-to-winter growth when properly supported</li>
+                        <li>Maintained <strong>97th percentile</strong> achievement</li>
+                        <li>High accuracy in ClearFluency (<strong>85%</strong>) when at correct level</li>
+                        <li>Strong XP:Min ratio in ClearFluency (<strong>1.12:1</strong>)</li>
+                        <li>Excellent accuracy on grade-level content</li>
+                    </ul>
+                </div>
+                <div style="background: #faf5ff; padding: 25px; border-radius: 12px; border: 2px solid var(--purple);">
+                    <h4 style="color: var(--purple); margin-bottom: 15px;">🎓 Academic Fault</h4>
+                    <ul style="margin-left: 20px; line-height: 2;">
+                        <li>Rostered in Grade 3 content <strong>before ORF mastery</strong></li>
+                        <li>AlphaRead Grade 3/3 was <strong>too difficult</strong> (65% accuracy)</li>
+                        <li>TeachTales Grade 3 had <strong>no time tracking</strong></li>
+                        <li>MobyMax 3-8 grade band <strong>too wide</strong></li>
+                        <li>~20 hours of <strong>wasted instructional time</strong></li>
+                        <li>No vocabulary intervention despite MAP flagging it</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Active School Days -->
+        <section id="active-days" class="section">
+            <div class="section-header">
+                <h2>📅 Active School Days Analysis</h2>
+                <span class="badge badge-info">Corrected XP/Min Calculations</span>
+            </div>
+
+            <p style="margin-bottom: 20px;">XP and minute expectations (25/25) are based on <strong>active school days only</strong>, not calendar days. Here's the breakdown from the TimeBack Daily Metrics:</p>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>App</th>
+                        <th>Date Range</th>
+                        <th>Active Days</th>
+                        <th>Total XP</th>
+                        <th>Total Minutes</th>
+                        <th>XP/Day</th>
+                        <th>Min/Day</th>
+                        <th>vs Target</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>AlphaRead</strong></td>
+                        <td>Aug 14 - Sep 3</td>
+                        <td>10 days</td>
+                        <td>89</td>
+                        <td>387 min</td>
+                        <td style="color: var(--danger);">8.9</td>
+                        <td style="color: var(--success);">38.7</td>
+                        <td>XP: 36% | Min: 155%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>TeachTales</strong></td>
+                        <td>Sep 4 - Nov 1</td>
+                        <td>40 days</td>
+                        <td>2,457</td>
+                        <td>~1,367 min*</td>
+                        <td style="color: var(--success);">61.4</td>
+                        <td style="color: var(--warning);">34.2*</td>
+                        <td>XP: 246% | Min: 137%*</td>
+                    </tr>
+                    <tr>
+                        <td><strong>MobyMax (All)</strong></td>
+                        <td>Oct 17 - Jan 13</td>
+                        <td>44 days</td>
+                        <td>1,262</td>
+                        <td>888 min</td>
+                        <td style="color: var(--success);">28.7</td>
+                        <td style="color: var(--danger);">20.2</td>
+                        <td>XP: 115% | Min: 81%</td>
+                    </tr>
+                    <tr style="background: #f0fff4;">
+                        <td><strong>ClearFluency</strong></td>
+                        <td>Jan 13 - Jan 30</td>
+                        <td>12 days</td>
+                        <td>535</td>
+                        <td>479 min</td>
+                        <td style="color: var(--success);">44.6</td>
+                        <td style="color: var(--success);">39.9</td>
+                        <td>XP: 178% | Min: 160%</td>
+                    </tr>
+                    <tr style="background: var(--light); font-weight: 600;">
+                        <td><strong>TOTAL / AVERAGE</strong></td>
+                        <td>Aug 14 - Jan 30</td>
+                        <td>~95 unique</td>
+                        <td>4,343</td>
+                        <td>3,121 min</td>
+                        <td style="color: var(--success);">45.7</td>
+                        <td style="color: var(--success);">32.9</td>
+                        <td>XP: 183% | Min: 132%</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p style="font-size: 0.85rem; color: var(--gray); margin-top: 10px;">*TeachTales time tracking is unreliable - many sessions show 0 minutes. Estimate based on available data.</p>
+
+            <div class="comparison-grid" style="margin-top: 25px;">
+                <div class="comparison-box expected">
+                    <label>Expected Per Active Day</label>
+                    <div class="value">25 XP</div>
+                    <p style="margin-top: 5px; font-size: 0.85rem;">25 minutes</p>
+                </div>
+                <div class="comparison-box actual positive">
+                    <label>Actual Per Active Day</label>
+                    <div class="value" style="color: var(--success);">45.7 XP</div>
+                    <p style="margin-top: 5px; font-size: 0.85rem;">32.9 minutes</p>
+                </div>
+            </div>
+
+            <div class="insight-box success">
+                <h4>✅ Corrected Analysis: Meeting Daily Targets</h4>
+                <p>When calculated based on <strong>active school days only</strong> (not calendar days), Gia's daily averages are:</p>
+                <ul style="margin-top: 10px; margin-left: 20px;">
+                    <li><strong>45.7 XP/day</strong> - 183% of the 25 XP target ✓</li>
+                    <li><strong>32.9 min/day</strong> - 132% of the 25 minute target ✓</li>
+                </ul>
+                <p style="margin-top: 15px;"><strong>Key Insight:</strong> The issue is NOT that Gia wasn't working enough on active days. The issues are:</p>
+                <ol style="margin-top: 10px; margin-left: 20px;">
+                    <li><strong>Wrong content level</strong> - Time was spent in Grade 3 content before ORF mastery</li>
+                    <li><strong>68% idle time in ClearFluency</strong> - Only 32% of app time was productive</li>
+                    <li><strong>Too few active days?</strong> - Need to verify against school calendar</li>
+                </ol>
+            </div>
+        </section>
+
+        <!-- ORF Standards Check -->
+        <section id="orf-standards" class="section">
+            <div class="section-header">
+                <h2>📖 Oral Reading Fluency Standards Check</h2>
+                <span class="badge badge-danger">Grade 2 Not Mastered</span>
+            </div>
+
+            <h4 style="margin-bottom: 15px;">Alpha School ORF Mastery Standards</h4>
+            <table class="orf-table">
+                <thead>
+                    <tr>
+                        <th>Grade Level</th>
+                        <th>Text Level</th>
+                        <th>Required WCPM</th>
+                        <th>Required Accuracy</th>
+                        <th>Gia's Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="met">
+                        <td><strong>Kindergarten</strong></td>
+                        <td>Level D</td>
+                        <td>20 WCPM</td>
+                        <td>95%</td>
+                        <td style="color: var(--success);">✅ MASTERED (88 WCPM, 98.9%)</td>
+                    </tr>
+                    <tr class="met">
+                        <td><strong>Grade 1</strong></td>
+                        <td>Level J</td>
+                        <td>67 WCPM</td>
+                        <td>95%</td>
+                        <td style="color: var(--success);">✅ MASTERED (105 WCPM on Level M)</td>
+                    </tr>
+                    <tr class="not-met">
+                        <td><strong>Grade 2</strong></td>
+                        <td>Level M</td>
+                        <td>104 WCPM</td>
+                        <td>95%</td>
+                        <td style="color: var(--danger);">❌ NOT MET (83 WCPM, 97.6%)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4 style="margin: 25px 0 15px;">Gia's Literably Assessment History</h4>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Passage</th>
+                        <th>Level</th>
+                        <th>Accuracy</th>
+                        <th>WCPM</th>
+                        <th>Comprehension</th>
+                        <th>Grade Mastery Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Aug 22, 2025</td>
+                        <td>Monkey and Elephant</td>
+                        <td>K</td>
+                        <td>98.9%</td>
+                        <td style="color: var(--success); font-weight: 600;">88</td>
+                        <td>5/5</td>
+                        <td style="color: var(--success);">✅ K Mastered (20+ WCPM)</td>
+                    </tr>
+                    <tr>
+                        <td>Sep 22, 2025</td>
+                        <td>Duck for a Day</td>
+                        <td>M</td>
+                        <td>83.3%</td>
+                        <td style="color: var(--success); font-weight: 600;">105</td>
+                        <td>5/5</td>
+                        <td style="color: var(--success);">✅ G1 Mastered (67+ WCPM)</td>
+                    </tr>
+                    <tr class="fault-row">
+                        <td>Dec 9, 2025</td>
+                        <td>The Fro-Yo Yo-Yo Contest</td>
+                        <td>M</td>
+                        <td>97.6%</td>
+                        <td style="color: var(--danger); font-weight: 600;">83</td>
+                        <td>3/5</td>
+                        <td style="color: var(--danger);">❌ G2 NOT Met (needs 104)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="insight-box critical">
+                <h4>⚠️ Critical Issue: WCPM Regression</h4>
+                <p>Gia's WCPM <strong>dropped from 105 → 83</strong> between September and December despite accuracy increasing (83.3% → 97.6%). This pattern suggests she may be <strong>over-decoding/being overly careful</strong> at the expense of automaticity, possibly due to struggling with too-difficult content. Her comprehension also dropped (5/5 → 3/5), indicating the text complexity was inappropriate.</p>
+            </div>
+
+            <div class="insight-box academic-fault">
+                <h4>🎓 Rostering Violation</h4>
+                <p>Since Gia has <strong>NOT mastered Grade 2 ORF standards</strong> (83 WCPM vs 104 required), she should NOT have been placed in Grade 3 content. The following enrollments violated this standard:</p>
+                <ul style="margin-top: 10px; margin-left: 20px;">
+                    <li><strong>AlphaRead Core Knowledge Grade 3/3</strong> - Started Aug 14, 2025</li>
+                    <li><strong>TeachTales Third Grade</strong> - Started Sep 4, 2025</li>
+                    <li><strong>MobyMax Reading Skills Literature 3-8</strong> - Started Oct 17, 2025</li>
+                    <li><strong>MobyMax Reading Skills Literature 3 Hole-Filling</strong> - Started Dec 3, 2025</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Wasted Time -->
+        <section id="wasted-time" class="section">
+            <div class="section-header">
+                <h2>⏰ Wasted Time Analysis (Academic Fault)</h2>
+                <span class="badge badge-purple">Misrostered Content</span>
+            </div>
+
+            <div class="wasted-time-box">
+                <h4>📊 Total Wasted Time Due to Misrostering</h4>
+                <div class="wasted-time-total">~20.5 hours</div>
+                <p style="text-align: center; color: var(--purple);">Time spent in Grade 3+ content before Grade 2 ORF mastery</p>
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>App/Course</th>
+                        <th>Grade Level</th>
+                        <th>Time Spent</th>
+                        <th>Avg Accuracy</th>
+                        <th>Verdict</th>
+                        <th>Wasted?</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="fault-row">
+                        <td>AlphaRead Core Knowledge 3/3</td>
+                        <td>Grade 3</td>
+                        <td>387 min (6.5 hrs)</td>
+                        <td style="color: var(--danger);">65%</td>
+                        <td>Too Hard</td>
+                        <td style="color: var(--purple); font-weight: 600;">✗ YES - Academic Fault</td>
+                    </tr>
+                    <tr class="fault-row">
+                        <td>TeachTales Third Grade</td>
+                        <td>Grade 3</td>
+                        <td>~500 min* (8.3 hrs)</td>
+                        <td style="color: var(--warning);">60%</td>
+                        <td>No Time Tracking</td>
+                        <td style="color: var(--purple); font-weight: 600;">✗ YES - Academic Fault</td>
+                    </tr>
+                    <tr class="fault-row">
+                        <td>MobyMax Literature 3-8</td>
+                        <td>Grade 3-8</td>
+                        <td>545 min (9.1 hrs)</td>
+                        <td style="color: var(--warning);">58%</td>
+                        <td>Too Wide Range</td>
+                        <td style="color: var(--purple); font-weight: 600;">✗ PARTIAL - Inconsistent</td>
+                    </tr>
+                    <tr>
+                        <td>MobyMax Literature 3 Hole-Filling</td>
+                        <td>Grade 3</td>
+                        <td>329 min (5.5 hrs)</td>
+                        <td style="color: var(--warning);">70%</td>
+                        <td>Remedial OK</td>
+                        <td>⚠️ Borderline</td>
+                    </tr>
+                    <tr style="background: #f0fff4;">
+                        <td>ClearFluency Grade 2 Hole-Filling</td>
+                        <td>Grade 2</td>
+                        <td>479 min (8 hrs)</td>
+                        <td style="color: var(--success);">85%</td>
+                        <td>Appropriate Level</td>
+                        <td style="color: var(--success); font-weight: 600;">✓ NO - Good Placement</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p style="font-size: 0.85rem; color: var(--gray); margin-top: 10px;">*TeachTales time estimated from XP data since minutes often show as 0</p>
+
+            <div class="insight-box academic-fault">
+                <h4>📉 Impact of Wasted Time</h4>
+                <p>If the ~20 hours spent in too-difficult Grade 3 content had instead been spent in <strong>grade-appropriate Grade 2 content</strong> (like ClearFluency), Gia would likely have:</p>
+                <ul style="margin-top: 10px; margin-left: 20px;">
+                    <li>Built stronger fluency foundations → potentially meeting the 104 WCPM threshold</li>
+                    <li>Achieved higher accuracy (85% vs 60%) → better skill reinforcement</li>
+                    <li>Maintained better XP:Min ratio → more efficient learning</li>
+                    <li>Likely achieved closer to 2x MAP growth target</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- XP:Minutes Ratio -->
+        <section id="xp-ratio" class="section">
+            <div class="section-header">
+                <h2>📊 XP:Minutes Ratio Analysis</h2>
+                <span class="badge badge-warning">Varies by App</span>
+            </div>
+
+            <p style="margin-bottom: 20px;">Target: <strong>1:1 ratio</strong> (25 XP per 25 minutes). Higher = possibly too easy. Lower = too hard.</p>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>App/Course</th>
+                        <th>Total XP</th>
+                        <th>Total Minutes</th>
+                        <th>XP:Min Ratio</th>
+                        <th>Interpretation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="background: #f0fff4;">
+                        <td><strong>ClearFluency Grade 2</strong></td>
+                        <td>535</td>
+                        <td>479 min</td>
+                        <td style="color: var(--success); font-weight: 600;">1.12:1</td>
+                        <td>✅ Optimal - Slightly above 1:1</td>
+                    </tr>
+                    <tr style="background: #f0fff4;">
+                        <td><strong>MobyMax Informational 3</strong></td>
+                        <td>70</td>
+                        <td>14 min</td>
+                        <td style="color: var(--success); font-weight: 600;">5.0:1*</td>
+                        <td>✅ Very efficient (small sample)</td>
+                    </tr>
+                    <tr style="background: #fffff0;">
+                        <td><strong>MobyMax Literature 3-8</strong></td>
+                        <td>872</td>
+                        <td>545 min</td>
+                        <td style="color: var(--warning); font-weight: 600;">1.60:1</td>
+                        <td>⚠️ Higher than ideal - mixed difficulty</td>
+                    </tr>
+                    <tr style="background: #fffff0;">
+                        <td><strong>MobyMax Literature 3 HF</strong></td>
+                        <td>320</td>
+                        <td>329 min</td>
+                        <td style="color: var(--warning); font-weight: 600;">0.97:1</td>
+                        <td>⚠️ Near optimal</td>
+                    </tr>
+                    <tr style="background: #fff5f5;">
+                        <td><strong>AlphaRead Grade 3/3</strong></td>
+                        <td>89</td>
+                        <td>387 min</td>
+                        <td style="color: var(--danger); font-weight: 600;">0.23:1</td>
+                        <td>❌ WAY TOO HARD</td>
+                    </tr>
+                    <tr style="background: #faf5ff;">
+                        <td><strong>TeachTales</strong></td>
+                        <td>2,457</td>
+                        <td>~1,367 min**</td>
+                        <td style="color: var(--purple); font-weight: 600;">1.80:1</td>
+                        <td>🎓 Unreliable - No time tracking</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p style="font-size: 0.85rem; color: var(--gray); margin-top: 10px;">*Small sample size. **TeachTales minutes often show as 0; estimate based on reported total.</p>
+
+            <div class="bar-chart" style="margin-top: 25px;">
+                <h4 style="margin-bottom: 15px;">XP:Minutes Ratio Visualization (Target: 1.0)</h4>
+                <div class="bar-row">
+                    <div class="bar-label">ClearFluency G2</div>
+                    <div class="bar-container">
+                        <div class="bar green" style="width: 56%;">1.12:1 ✓</div>
+                    </div>
+                </div>
+                <div class="bar-row">
+                    <div class="bar-label">MobyMax Lit 3 HF</div>
+                    <div class="bar-container">
+                        <div class="bar green" style="width: 48%;">0.97:1 ✓</div>
+                    </div>
+                </div>
+                <div class="bar-row">
+                    <div class="bar-label">MobyMax Lit 3-8</div>
+                    <div class="bar-container">
+                        <div class="bar yellow" style="width: 80%;">1.60:1 ⚠️</div>
+                    </div>
+                </div>
+                <div class="bar-row">
+                    <div class="bar-label">TeachTales</div>
+                    <div class="bar-container">
+                        <div class="bar purple" style="width: 90%;">1.80:1 🎓</div>
+                    </div>
+                </div>
+                <div class="bar-row">
+                    <div class="bar-label">AlphaRead G3/3</div>
+                    <div class="bar-container">
+                        <div class="bar red" style="width: 12%;">0.23:1 ❌</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="insight-box">
+                <h4>📈 XP Ratio Insights</h4>
+                <ul style="margin-left: 20px; line-height: 1.8;">
+                    <li><strong>ClearFluency (1.12:1)</strong>: Optimal range - appropriate challenge level</li>
+                    <li><strong>AlphaRead (0.23:1)</strong>: Severely too hard - 4x below target ratio</li>
+                    <li><strong>TeachTales (1.80:1)</strong>: Suspiciously high - may indicate content is too easy OR time tracking issues</li>
+                    <li><strong>MobyMax 3-8 (1.60:1)</strong>: Wide grade band leads to inconsistent difficulty</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- AlphaRead Analysis -->
+        <section id="alpharead" class="section">
+            <div class="section-header">
+                <h2>📕 AlphaRead Core Knowledge 3/3 Analysis</h2>
+                <span class="badge badge-danger">Too Hard - Struggled</span>
+            </div>
+
+            <div class="verdict-box too-hard">
+                <div class="verdict-header">
+                    <div class="verdict-icon">❌</div>
+                    <div>
+                        <div class="verdict-title">VERDICT: TOO HARD - Student Struggled</div>
+                        <div style="color: var(--gray);">Academic Fault: Rostered before Grade 2 ORF mastery</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-grid">
+                <div class="metric-item bad">
+                    <div class="value">65%</div>
+                    <label>Avg Accuracy</label>
+                </div>
+                <div class="metric-item bad">
+                    <div class="value">0.23:1</div>
+                    <label>XP:Min Ratio</label>
+                </div>
+                <div class="metric-item warning">
+                    <div class="value">387 min</div>
+                    <label>Total Time</label>
+                </div>
+                <div class="metric-item bad">
+                    <div class="value">89</div>
+                    <label>Total XP</label>
+                </div>
+            </div>
+
+            <h4 style="margin: 20px 0 15px;">Session-by-Session Performance</h4>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Accuracy</th>
+                        <th>Correct/Total</th>
+                        <th>XP</th>
+                        <th>Minutes</th>
+                        <th>Assessment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Aug 14</td>
+                        <td style="color: var(--danger);">62.5%</td>
+                        <td>10/16</td>
+                        <td>—</td>
+                        <td>25.8</td>
+                        <td style="color: var(--danger);">Struggling</td>
+                    </tr>
+                    <tr>
+                        <td>Aug 15</td>
+                        <td style="color: var(--danger);">68.8%</td>
+                        <td>11/16</td>
+                        <td>—</td>
+                        <td>25.7</td>
+                        <td style="color: var(--danger);">Struggling</td>
+                    </tr>
+                    <tr>
+                        <td>Aug 18</td>
+                        <td style="color: var(--danger);">64.7%</td>
+                        <td>11/17</td>
+                        <td>—</td>
+                        <td>29.7</td>
+                        <td style="color: var(--danger);">Struggling</td>
+                    </tr>
+                    <tr>
+                        <td>Aug 22</td>
+                        <td style="color: var(--warning);">81.3%</td>
+                        <td>13/16</td>
+                        <td>11</td>
+                        <td>27.8</td>
+                        <td style="color: var(--warning);">Better</td>
+                    </tr>
+                    <tr style="background: #fff5f5;">
+                        <td>Aug 25</td>
+                        <td style="color: var(--danger);">25.0%</td>
+                        <td>2/8</td>
+                        <td>—</td>
+                        <td>12.8</td>
+                        <td style="color: var(--danger);">Failed</td>
+                    </tr>
+                    <tr>
+                        <td>Aug 26</td>
+                        <td style="color: var(--danger);">60.7%</td>
+                        <td>34/56</td>
+                        <td>20</td>
+                        <td>127.4</td>
+                        <td style="color: var(--danger);">Long struggle session</td>
+                    </tr>
+                    <tr>
+                        <td>Aug 27</td>
+                        <td style="color: var(--warning);">75.0%</td>
+                        <td>6/8</td>
+                        <td>—</td>
+                        <td>16.5</td>
+                        <td>Acceptable</td>
+                    </tr>
+                    <tr>
+                        <td>Sep 1</td>
+                        <td style="color: var(--danger);">61.5%</td>
+                        <td>16/26</td>
+                        <td>11</td>
+                        <td>62.8</td>
+                        <td style="color: var(--danger);">Struggling</td>
+                    </tr>
+                    <tr>
+                        <td>Sep 2</td>
+                        <td style="color: var(--warning);">70.0%</td>
+                        <td>21/30</td>
+                        <td>20</td>
+                        <td>33.7</td>
+                        <td>Borderline</td>
+                    </tr>
+                    <tr>
+                        <td>Sep 3</td>
+                        <td style="color: var(--success);">88.0%</td>
+                        <td>22/25</td>
+                        <td>27</td>
+                        <td>25.1</td>
+                        <td style="color: var(--success);">Good (then removed)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="insight-box critical">
+                <h4>📉 AlphaRead Analysis</h4>
+                <p><strong>Pattern:</strong> Gia consistently struggled in AlphaRead Grade 3/3, with accuracy averaging ~65%. The XP:Min ratio of 0.23:1 is <strong>4x below the target</strong>, indicating the content was far too difficult. Notable issues:</p>
+                <ul style="margin-top: 10px; margin-left: 20px;">
+                    <li>Aug 25: <strong>25% accuracy</strong> (2/8 correct) - complete failure</li>
+                    <li>Aug 26: <strong>127 minutes</strong> spent struggling through one session</li>
+                    <li>Only earned 89 XP over 387 minutes = severe inefficiency</li>
+                    <li>She was moved out after Sep 3 (her only good day at 88%)</li>
+                </ul>
+                <p style="margin-top: 15px;"><strong>Conclusion:</strong> This content was inappropriate for a student who hadn't mastered Grade 2 ORF. The 6.5 hours spent here should be counted as wasted instructional time.</p>
+            </div>
+        </section>
+
+        <!-- ClearFluency Analysis -->
+        <section id="clearfluency" class="section">
+            <div class="section-header">
+                <h2>🎯 ClearFluency Grade 2 Deep Dive</h2>
+                <span class="badge badge-warning">Mixed - Correct Level but 68% Idle Time</span>
+            </div>
+
+            <div class="verdict-box mixed">
+                <div class="verdict-header">
+                    <div class="verdict-icon">⚠️</div>
+                    <div>
+                        <div class="verdict-title">VERDICT: MIXED - Correct Level but Major Time Waste Issue</div>
+                        <div style="color: var(--gray);">Good content alignment, strong WCPM, but 68% of time spent in "Other" (idle)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-grid">
+                <div class="metric-item good">
+                    <div class="value">85%</div>
+                    <label>Avg Quiz Accuracy</label>
+                </div>
+                <div class="metric-item good">
+                    <div class="value">2.3</div>
+                    <label>Reading Level (ATOS)</label>
+                </div>
+                <div class="metric-item good">
+                    <div class="value">83%</div>
+                    <label>Comprehension Score</label>
+                </div>
+                <div class="metric-item warning">
+                    <div class="value">68%</div>
+                    <label>"Other" Time ⚠️</label>
+                </div>
+                <div class="metric-item good">
+                    <div class="value">110</div>
+                    <label>Avg WCPM</label>
+                </div>
+                <div class="metric-item good">
+                    <div class="value">38</div>
+                    <label>Selections Completed</label>
+                </div>
+            </div>
+
+            <!-- Time Usage Critical Finding -->
+            <div class="insight-box critical" style="margin-top: 25px;">
+                <h4>🚨 CRITICAL FINDING: 68% of ClearFluency Time is "Other"</h4>
+                <p>The ClearFluency report reveals that only <strong>32% of time</strong> is spent on actual learning activities:</p>
+                <table class="data-table" style="margin-top: 15px;">
+                    <thead>
+                        <tr>
+                            <th>Activity</th>
+                            <th>Time %</th>
+                            <th>Purpose</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Step 1: Preview & Read on My Own</td>
+                            <td>5%</td>
+                            <td>Pre-reading/preview</td>
+                            <td style="color: var(--success);">✓ Learning</td>
+                        </tr>
+                        <tr>
+                            <td>Step 2: Read & Record</td>
+                            <td>21%</td>
+                            <td>Oral fluency practice</td>
+                            <td style="color: var(--success);">✓ Core Learning</td>
+                        </tr>
+                        <tr>
+                            <td>Step 3: Take the Quiz</td>
+                            <td>6%</td>
+                            <td>Comprehension check</td>
+                            <td style="color: var(--success);">✓ Assessment</td>
+                        </tr>
+                        <tr style="background: #fff5f5;">
+                            <td><strong>Other</strong></td>
+                            <td><strong>68%</strong></td>
+                            <td>Unknown/Idle/Navigation</td>
+                            <td style="color: var(--danger);">❌ Wasted</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p style="margin-top: 15px;"><strong>Impact:</strong> Of the 479 recorded minutes in ClearFluency, approximately <strong>326 minutes (~5.4 hours) was idle time</strong>. This needs investigation.</p>
+            </div>
+
+            <!-- Daily Time Breakdown -->
+            <h4 style="margin: 25px 0 15px;">Daily "Other" Time Analysis</h4>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Total Min</th>
+                        <th>Selections</th>
+                        <th>Step 1+2+3</th>
+                        <th>"Other" Min</th>
+                        <th>"Other" %</th>
+                        <th>Concern Level</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="background: #fff5f5;">
+                        <td>Jan 13</td>
+                        <td>559</td>
+                        <td>12</td>
+                        <td>206</td>
+                        <td style="color: var(--danger); font-weight: 600;">353</td>
+                        <td>63%</td>
+                        <td style="color: var(--danger);">High</td>
+                    </tr>
+                    <tr style="background: #fff5f5;">
+                        <td>Jan 14</td>
+                        <td>270</td>
+                        <td>7</td>
+                        <td>83</td>
+                        <td style="color: var(--danger); font-weight: 600;">187</td>
+                        <td>69%</td>
+                        <td style="color: var(--danger);">High</td>
+                    </tr>
+                    <tr>
+                        <td>Jan 15</td>
+                        <td>38</td>
+                        <td>3</td>
+                        <td>27</td>
+                        <td>11</td>
+                        <td>30%</td>
+                        <td style="color: var(--success);">OK</td>
+                    </tr>
+                    <tr style="background: #fff5f5;">
+                        <td>Jan 16</td>
+                        <td>161</td>
+                        <td>2</td>
+                        <td>18</td>
+                        <td style="color: var(--danger); font-weight: 600;">143</td>
+                        <td>89%</td>
+                        <td style="color: var(--danger);">Critical</td>
+                    </tr>
+                    <tr style="background: #fff5f5;">
+                        <td>Jan 20</td>
+                        <td>79</td>
+                        <td>1</td>
+                        <td>18</td>
+                        <td style="color: var(--danger); font-weight: 600;">61</td>
+                        <td>77%</td>
+                        <td style="color: var(--danger);">High</td>
+                    </tr>
+                    <tr style="background: #fff5f5;">
+                        <td>Jan 21</td>
+                        <td>77</td>
+                        <td>2</td>
+                        <td>16</td>
+                        <td style="color: var(--danger); font-weight: 600;">61</td>
+                        <td>79%</td>
+                        <td style="color: var(--danger);">High</td>
+                    </tr>
+                    <tr style="background: #fff5f5;">
+                        <td>Jan 22</td>
+                        <td>99</td>
+                        <td>2</td>
+                        <td>32</td>
+                        <td style="color: var(--danger); font-weight: 600;">67</td>
+                        <td>68%</td>
+                        <td style="color: var(--danger);">High</td>
+                    </tr>
+                    <tr>
+                        <td>Jan 23</td>
+                        <td>24</td>
+                        <td>2</td>
+                        <td>23</td>
+                        <td>1</td>
+                        <td>4%</td>
+                        <td style="color: var(--success);">Excellent</td>
+                    </tr>
+                    <tr>
+                        <td>Jan 26</td>
+                        <td>25</td>
+                        <td>2</td>
+                        <td>22</td>
+                        <td>3</td>
+                        <td>14%</td>
+                        <td style="color: var(--success);">Good</td>
+                    </tr>
+                    <tr style="background: #fff5f5;">
+                        <td>Jan 28</td>
+                        <td>85</td>
+                        <td>3</td>
+                        <td>18</td>
+                        <td style="color: var(--danger); font-weight: 600;">67</td>
+                        <td>79%</td>
+                        <td style="color: var(--danger);">High</td>
+                    </tr>
+                    <tr style="background: #fff5f5;">
+                        <td>Jan 30</td>
+                        <td>82</td>
+                        <td>2</td>
+                        <td>9</td>
+                        <td style="color: var(--danger); font-weight: 600;">73</td>
+                        <td>89%</td>
+                        <td style="color: var(--danger);">Critical</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- WCPM and Fluency Analysis -->
+            <h4 style="margin: 25px 0 15px;">Fluency Score (WCPM) Analysis</h4>
+            <p>All WCPM readings exceed ClearFluency's 80 WCPM threshold, but there's a <strong>declining trend</strong>:</p>
+
+            <div class="bar-chart" style="margin-top: 15px;">
+                <div class="bar-row">
+                    <div class="bar-label">Week 1 (Jan 11-17)</div>
+                    <div class="bar-container">
+                        <div class="bar green" style="width: 80%;">~160 WCPM ✓</div>
+                    </div>
+                </div>
+                <div class="bar-row">
+                    <div class="bar-label">Week 2 (Jan 18-24)</div>
+                    <div class="bar-container">
+                        <div class="bar green" style="width: 82%;">~165 WCPM ✓</div>
+                    </div>
+                </div>
+                <div class="bar-row">
+                    <div class="bar-label">Week 3 (Jan 25-31)</div>
+                    <div class="bar-container">
+                        <div class="bar yellow" style="width: 65%;">~130 WCPM ⚠️</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="insight-box warning" style="margin-top: 20px;">
+                <h4>⚠️ WCPM Declining in Week 3</h4>
+                <p>Gia's average WCPM in ClearFluency dropped from ~160 to ~130 in week 3. Possible causes:</p>
+                <ul style="margin-top: 10px; margin-left: 20px;">
+                    <li>Text complexity increasing as she progresses</li>
+                    <li>Fatigue or motivation issues</li>
+                    <li>High "Other" time correlating with lower engagement</li>
+                </ul>
+            </div>
+
+            <!-- Comprehension Skills Breakdown -->
+            <h4 style="margin: 25px 0 15px;">Comprehension Skills Breakdown (256/310 = 83%)</h4>
+            <div class="skill-match-grid">
+                <div class="skill-column" style="background: #f0fff4;">
+                    <h5 style="color: var(--success);">✅ Strong Skills (80%+)</h5>
+                    <div class="skill-item"><span class="match">✓</span> Author's View: 10/10 (100%)</div>
+                    <div class="skill-item"><span class="match">✓</span> Predict: 11/11 (100%)</div>
+                    <div class="skill-item"><span class="match">✓</span> Guiding Thinking: 2/2 (100%)</div>
+                    <div class="skill-item"><span class="match">✓</span> Make Connections: 21/23 (91%)</div>
+                    <div class="skill-item"><span class="match">✓</span> Check for Understanding: 32/36 (89%)</div>
+                    <div class="skill-item"><span class="match">✓</span> Story Elements: 49/56 (88%)</div>
+                    <div class="skill-item"><span class="match">✓</span> Nonfiction Text Features: 7/8 (88%)</div>
+                    <div class="skill-item"><span class="match">✓</span> Cause and Effect: 18/21 (86%)</div>
+                    <div class="skill-item"><span class="match">✓</span> Schema/Prior Knowledge: 10/12 (83%)</div>
+                    <div class="skill-item"><span class="match">✓</span> Compare/Contrast: 18/22 (82%)</div>
+                    <div class="skill-item"><span class="match">✓</span> Main Idea/Details: 11/14 (79%)</div>
+                </div>
+                <div class="skill-column" style="background: #fff5f5;">
+                    <h5 style="color: var(--danger);">⚠️ Needs Improvement (<75%)</h5>
+                    <div class="skill-item"><span class="mismatch">✗</span> Visualize: 3/4 (75%)</div>
+                    <div class="skill-item"><span class="mismatch">✗</span> Retell/Summarize: 6/8 (75%)</div>
+                    <div class="skill-item"><span class="mismatch">✗</span> Figurative Language: 9/12 (75%)</div>
+                    <div class="skill-item"><span class="mismatch">✗</span> Inference/Conclusions: 31/42 (74%)</div>
+                    <div class="skill-item"><span class="mismatch">✗</span> Sequence: 8/11 (73%)</div>
+                    <div class="skill-item"><span class="mismatch">✗</span> Compare and Contrast: 8/13 (62%)</div>
+                    <div class="skill-item"><span class="mismatch">✗</span> Ask Questions: 2/4 (50%)</div>
+                    <div class="skill-item"><span class="mismatch">✗</span> Context Clues: 0/1 (0%)</div>
+                    <div class="skill-item"><span class="mismatch">✗</span> Fact/Opinion: 0/1 (0%)</div>
+                    <h5 style="margin-top: 20px; color: var(--warning);">Level of Thinking</h5>
+                    <div class="skill-item"><span class="match">✓</span> Evaluation: 21/22 (95%)</div>
+                    <div class="skill-item"><span class="match">✓</span> Literal: 93/106 (88%)</div>
+                    <div class="skill-item"><span class="partial">◐</span> Inferential: 87/110 (79%)</div>
+                    <div class="skill-item"><span class="partial">◐</span> Analysis: 55/72 (76%)</div>
+                </div>
+            </div>
+
+            <!-- Reading Selections Sample -->
+            <h4 style="margin: 25px 0 15px;">Reading Selections Sample (38 Total)</h4>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Selection</th>
+                        <th>ATOS GE</th>
+                        <th>Lexile</th>
+                        <th>WCPM</th>
+                        <th>Quiz</th>
+                        <th>TAI Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Jan 13</td>
+                        <td>Keep the Lights Burning, Abbie Ch 1</td>
+                        <td>2.2</td>
+                        <td>370L</td>
+                        <td style="color: var(--success);">111</td>
+                        <td>5/5</td>
+                        <td>1/2</td>
+                    </tr>
+                    <tr>
+                        <td>Jan 14</td>
+                        <td>The On-Again, Off-Again Friend</td>
+                        <td>2.1</td>
+                        <td>480L</td>
+                        <td style="color: var(--success);">122</td>
+                        <td>3/5</td>
+                        <td>2/4</td>
+                    </tr>
+                    <tr>
+                        <td>Jan 15</td>
+                        <td>How I Pack My Lunch</td>
+                        <td>2.1</td>
+                        <td>270L</td>
+                        <td style="color: var(--success);">153</td>
+                        <td>4/5</td>
+                        <td>5/5</td>
+                    </tr>
+                    <tr>
+                        <td>Jan 21</td>
+                        <td>Colors of the World</td>
+                        <td>2.2</td>
+                        <td>310L</td>
+                        <td style="color: var(--success);">138</td>
+                        <td>4/4</td>
+                        <td>2/2</td>
+                    </tr>
+                    <tr>
+                        <td>Jan 23</td>
+                        <td>The Ugly Duckling</td>
+                        <td>2.2</td>
+                        <td>400L</td>
+                        <td style="color: var(--success);">112</td>
+                        <td>4/5</td>
+                        <td>4/5</td>
+                    </tr>
+                    <tr>
+                        <td>Jan 28</td>
+                        <td>Hooray for Farmers!</td>
+                        <td>2.2</td>
+                        <td>350L</td>
+                        <td style="color: var(--warning);">90</td>
+                        <td>4/5</td>
+                        <td>3/3</td>
+                    </tr>
+                    <tr>
+                        <td>Jan 30</td>
+                        <td>Busy Saturday</td>
+                        <td>2.3</td>
+                        <td>320L</td>
+                        <td style="color: var(--success);">101</td>
+                        <td>4/5</td>
+                        <td>2/2</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="insight-box">
+                <h4>📊 ClearFluency Summary</h4>
+                <p><strong>What's Working:</strong></p>
+                <ul style="margin-top: 10px; margin-left: 20px;">
+                    <li>Content at <strong>ATOS 1.7-2.3</strong> (Lexile 170L-480L) is appropriate for Grade 2</li>
+                    <li>All WCPM scores <strong>exceed 80 threshold</strong> (range: 88-153)</li>
+                    <li><strong>83% comprehension</strong> demonstrates understanding</li>
+                    <li>High accuracy (85%) vs AlphaRead (65%)</li>
+                    <li>Appropriate XP:Min ratio (1.12:1)</li>
+                </ul>
+                <p style="margin-top: 15px;"><strong>Critical Concerns:</strong></p>
+                <ul style="margin-top: 10px; margin-left: 20px;">
+                    <li><strong>68% "Other" time</strong> - Only 32% of recorded time is productive learning</li>
+                    <li><strong>WCPM declining</strong> in week 3 (160 → 130)</li>
+                    <li><strong>Inferential thinking at 79%</strong> - needs targeted support</li>
+                    <li><strong>Context clues at 0%</strong> - aligns with MAP vocabulary weakness</li>
+                </ul>
+            </div>
+
+            <div class="comparison-grid" style="margin-top: 20px;">
+                <div class="comparison-box expected">
+                    <label>AlphaRead G3/3 (Too Hard)</label>
+                    <div class="value" style="color: var(--danger);">65%</div>
+                    <p style="margin-top: 5px; font-size: 0.85rem;">XP:Min = 0.23:1</p>
+                </div>
+                <div class="comparison-box actual positive">
+                    <label>ClearFluency G2 (Correct Level)</label>
+                    <div class="value" style="color: var(--success);">85%</div>
+                    <p style="margin-top: 5px; font-size: 0.85rem;">XP:Min = 1.12:1 (but 68% idle)</p>
+                </div>
+            </div>
+
+            <div class="insight-box academic-fault" style="margin-top: 20px;">
+                <h4>🎓 Action Required: Investigate "Other" Time</h4>
+                <p>The 68% "Other" time in ClearFluency represents a <strong>major efficiency problem</strong>. Possible causes to investigate:</p>
+                <ol style="margin-top: 10px; margin-left: 20px;">
+                    <li><strong>App left open but idle</strong> - Student may be doing other activities</li>
+                    <li><strong>Navigation/loading time</strong> - Tech issues with the app</li>
+                    <li><strong>Listening to recordings</strong> - Time spent on playback not tracked properly</li>
+                    <li><strong>Distraction</strong> - Student needs more supervision</li>
+                </ol>
+                <p style="margin-top: 15px;"><strong>Recommendation:</strong> Coach should observe Gia during ClearFluency sessions to identify where the "Other" time is going. If addressed, effective learning time could nearly <strong>triple</strong>.</p>
+            </div>
+        </section>
+
+        <!-- TeachTales Analysis -->
+        <section id="teachtales" class="section">
+            <div class="section-header">
+                <h2>📖 TeachTales Analysis</h2>
+                <span class="badge badge-danger">Ineffective - Unverifiable</span>
+            </div>
+
+            <div class="verdict-box ineffective">
+                <div class="verdict-header">
+                    <div class="verdict-icon">❌</div>
+                    <div>
+                        <div class="verdict-title">VERDICT: INEFFECTIVE - Cannot Verify Learning</div>
+                        <div style="color: var(--gray);">Silent reading with no time monitoring + declining ORF/MAP results</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-grid">
+                <div class="metric-item warning">
+                    <div class="value">~60%</div>
+                    <label>Avg Quiz Accuracy</label>
+                </div>
+                <div class="metric-item too-easy">
+                    <div class="value">1.80:1</div>
+                    <label>XP:Min Ratio</label>
+                </div>
+                <div class="metric-item">
+                    <div class="value">2,457</div>
+                    <label>Total XP</label>
+                </div>
+                <div class="metric-item bad">
+                    <div class="value">0 min</div>
+                    <label>Many Sessions</label>
+                </div>
+            </div>
+
+            <div class="insight-box critical">
+                <h4>🚨 Critical Issues with TeachTales</h4>
+                <ol style="margin-left: 20px; line-height: 2;">
+                    <li><strong>No Time Tracking:</strong> Many sessions show 0 minutes but high XP, making it impossible to verify actual engagement</li>
+                    <li><strong>Silent Reading Not Monitored:</strong> As a "build your own adventure" app, actual reading cannot be verified</li>
+                    <li><strong>Quiz Accuracy Only ~60%:</strong> Below the 75%+ threshold indicating content comprehension</li>
+                    <li><strong>ORF Declined During Usage:</strong> WCPM dropped 105 → 83 while using TeachTales (Sep-Dec 2025)</li>
+                    <li><strong>MAP Comprehension Dropped:</strong> Literably comprehension went 5/5 → 3/5 during this period</li>
+                    <li><strong>Grade 3 Content:</strong> Inappropriate for student who hadn't mastered Grade 2 ORF</li>
+                </ol>
+            </div>
+
+            <h4 style="margin: 20px 0 15px;">TeachTales Data Quality Issues</h4>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>XP Earned</th>
+                        <th>Minutes Recorded</th>
+                        <th>Accuracy</th>
+                        <th>Data Quality</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="fault-row">
+                        <td>Sep 4-16</td>
+                        <td>26-61 XP/day</td>
+                        <td style="color: var(--danger);">0 min</td>
+                        <td>—</td>
+                        <td style="color: var(--danger);">❌ No time data</td>
+                    </tr>
+                    <tr>
+                        <td>Sep 17</td>
+                        <td>107</td>
+                        <td style="color: var(--danger);">0 min</td>
+                        <td>53%</td>
+                        <td style="color: var(--danger);">❌ No time data</td>
+                    </tr>
+                    <tr>
+                        <td>Sep 18</td>
+                        <td>151</td>
+                        <td style="color: var(--danger);">0 min</td>
+                        <td>58%</td>
+                        <td style="color: var(--danger);">❌ No time data</td>
+                    </tr>
+                    <tr>
+                        <td>Oct 1</td>
+                        <td>64</td>
+                        <td>81 min</td>
+                        <td>52%</td>
+                        <td style="color: var(--warning);">⚠️ Low accuracy</td>
+                    </tr>
+                    <tr>
+                        <td>Oct 28</td>
+                        <td>150</td>
+                        <td>791 min (!)</td>
+                        <td>69%</td>
+                        <td style="color: var(--danger);">❌ Suspicious time</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="insight-box academic-fault">
+                <h4>🎓 TeachTales: Why It Failed Gia</h4>
+                <p><strong>The Core Problem:</strong> TeachTales relies on silent, unmonitored reading. For a student struggling with fluency (not yet at Grade 2 WCPM standard), this is the <strong>wrong approach</strong>. Without oral reading practice, Gia couldn't build the automaticity she needed.</p>
+
+                <p style="margin-top: 15px;"><strong>Evidence of Ineffectiveness:</strong></p>
+                <ul style="margin-top: 10px; margin-left: 20px;">
+                    <li>ORF <strong>declined</strong> from 105 → 83 WCPM during TeachTales usage</li>
+                    <li>Comprehension <strong>declined</strong> from 5/5 → 3/5 on Literably</li>
+                    <li>MAP Informational Text <strong>dropped</strong> to 188 (suggested area of focus in Fall '25)</li>
+                    <li>Quiz accuracy averaged only ~60% (below 75% comprehension threshold)</li>
+                </ul>
+
+                <p style="margin-top: 15px;"><strong>Verdict:</strong> The ~500+ minutes (estimated) spent in TeachTales should be considered <strong>wasted time</strong>. A student with fluency gaps needs monitored oral reading practice, not silent independent reading in above-level text.</p>
+            </div>
+        </section>
+
+        <!-- MobyMax Analysis -->
+        <section id="mobymax" class="section">
+            <div class="section-header">
+                <h2>📚 MobyMax Reading Analysis</h2>
+                <span class="badge badge-warning">Mixed Results</span>
+            </div>
+
+            <div class="verdict-box mixed">
+                <div class="verdict-header">
+                    <div class="verdict-icon">⚠️</div>
+                    <div>
+                        <div class="verdict-title">VERDICT: MIXED - Grade Band Too Wide</div>
+                        <div style="color: var(--gray);">Literature 3-8 range caused inconsistent difficulty; Literature 3 HF was better</div>
+                    </div>
+                </div>
+            </div>
+
+            <h4 style="margin: 20px 0 15px;">MobyMax Course Comparison</h4>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Course</th>
+                        <th>Grade Level</th>
+                        <th>Avg Accuracy</th>
+                        <th>XP:Min Ratio</th>
+                        <th>Total Time</th>
+                        <th>Verdict</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="background: #fffff0;">
+                        <td>Literature 3-8</td>
+                        <td>3-8 (too wide)</td>
+                        <td style="color: var(--warning);">58%</td>
+                        <td>1.60:1</td>
+                        <td>545 min</td>
+                        <td style="color: var(--warning);">⚠️ Inconsistent difficulty</td>
+                    </tr>
+                    <tr>
+                        <td>Literature 3 Hole-Filling</td>
+                        <td>3</td>
+                        <td style="color: var(--warning);">70%</td>
+                        <td>0.97:1</td>
+                        <td>329 min</td>
+                        <td>Borderline appropriate</td>
+                    </tr>
+                    <tr style="background: #f0fff4;">
+                        <td>Informational 3</td>
+                        <td>3</td>
+                        <td style="color: var(--success);">81%</td>
+                        <td>5.0:1*</td>
+                        <td>14 min</td>
+                        <td style="color: var(--success);">✓ Good (small sample)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4 style="margin: 25px 0 15px;">MobyMax Literature 3-8: Accuracy Volatility</h4>
+            <p style="margin-bottom: 15px; color: var(--gray);">The wide grade band caused wild accuracy swings:</p>
+
+            <div class="bar-chart">
+                <div class="bar-row">
+                    <div class="bar-label">Oct 17 (76%)</div>
+                    <div class="bar-container">
+                        <div class="bar yellow" style="width: 76%;">76%</div>
+                    </div>
+                </div>
+                <div class="bar-row">
+                    <div class="bar-label">Oct 24 (20%)</div>
+                    <div class="bar-container">
+                        <div class="bar red" style="width: 20%;">20% ❌</div>
+                    </div>
+                </div>
+                <div class="bar-row">
+                    <div class="bar-label">Oct 31 (45%)</div>
+                    <div class="bar-container">
+                        <div class="bar red" style="width: 45%;">45%</div>
+                    </div>
+                </div>
+                <div class="bar-row">
+                    <div class="bar-label">Nov 5 (93%)</div>
+                    <div class="bar-container">
+                        <div class="bar green" style="width: 93%;">93% ✓</div>
+                    </div>
+                </div>
+                <div class="bar-row">
+                    <div class="bar-label">Nov 7 (40%)</div>
+                    <div class="bar-container">
+                        <div class="bar red" style="width: 40%;">40% ❌</div>
+                    </div>
+                </div>
+                <div class="bar-row">
+                    <div class="bar-label">Nov 14 (95%)</div>
+                    <div class="bar-container">
+                        <div class="bar green" style="width: 95%;">95% ✓</div>
+                    </div>
+                </div>
+                <div class="bar-row">
+                    <div class="bar-label">Nov 18 (30%)</div>
+                    <div class="bar-container">
+                        <div class="bar red" style="width: 30%;">30% ❌</div>
+                    </div>
+                </div>
+                <div class="bar-row">
+                    <div class="bar-label">Dec 2 (43%)</div>
+                    <div class="bar-container">
+                        <div class="bar red" style="width: 43%;">43% ❌</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="insight-box warning">
+                <h4>📊 MobyMax Analysis</h4>
+                <p><strong>The Problem:</strong> The "Literature 3-8" course spans 6 grade levels. This means Gia encountered some Grade 3 content (manageable at ~75% accuracy) mixed with Grade 6-8 content (failing at 20-40% accuracy). The algorithm's adaptive nature couldn't compensate for this fundamental mismatch.</p>
+
+                <p style="margin-top: 15px;"><strong>Better Alternative:</strong> MobyMax "Literature 3 Hole-Filling" showed more consistent results (70% avg accuracy, 0.97:1 XP ratio). Single-grade courses are more appropriate than multi-grade ranges.</p>
+            </div>
+        </section>
+
+        <!-- MobyMax Skills Match -->
+        <section id="mobymax-skills" class="section">
+            <div class="section-header">
+                <h2>🎯 MobyMax Skill Alignment with MAP</h2>
+                <span class="badge badge-warning">Partial Match</span>
+            </div>
+
+            <p style="margin-bottom: 20px;">Comparing MobyMax Grade 3 Reading/Language skills to Gia's MAP instructional areas:</p>
+
+            <div class="skill-match-grid">
+                <div class="skill-column">
+                    <h5>📖 MobyMax Grade 3 Literature Skills (CCSS RL.3)</h5>
+                    <div class="skill-item"><span class="match">✓</span> Ask/answer questions with text evidence (RL.3.1)</div>
+                    <div class="skill-item"><span class="match">✓</span> Determine central message/moral (RL.3.2)</div>
+                    <div class="skill-item"><span class="match">✓</span> Describe characters and their actions (RL.3.3)</div>
+                    <div class="skill-item"><span class="partial">◐</span> Distinguish literal vs nonliteral language (RL.3.4)</div>
+                    <div class="skill-item"><span class="partial">◐</span> Refer to story parts (chapter, scene) (RL.3.5)</div>
+                    <div class="skill-item"><span class="match">✓</span> Distinguish point of view (RL.3.6)</div>
+                    <div class="skill-item"><span class="match">✓</span> Compare/contrast themes, settings, plots (RL.3.9)</div>
+                </div>
+                <div class="skill-column">
+                    <h5>🎯 Gia's MAP Instructional Needs (Winter '25)</h5>
+                    <div class="skill-item"><span class="mismatch">✗</span> Prefix/suffix understanding (dis-, mis-, -er, -est)</div>
+                    <div class="skill-item"><span class="mismatch">✗</span> Context clues for multiple-meaning words</div>
+                    <div class="skill-item"><span class="mismatch">✗</span> Homophones</div>
+                    <div class="skill-item"><span class="partial">◐</span> Figurative language (idioms)</div>
+                    <div class="skill-item"><span class="mismatch">✗</span> Reference materials (dictionary, glossary)</div>
+                    <div class="skill-item"><span class="mismatch">✗</span> Word nuances and connotations</div>
+                    <div class="skill-item"><span class="partial">◐</span> Locating information in text</div>
+                </div>
+            </div>
+
+            <div class="insight-box warning">
+                <h4>⚠️ Skill Alignment Issues</h4>
+                <p><strong>The Mismatch:</strong> MAP Winter 2025 identified <strong>Vocabulary Use and Functions (186 RIT)</strong> as Gia's primary weakness—20 points below her overall score. The skills she needed to develop were:</p>
+                <ul style="margin-top: 10px; margin-left: 20px;">
+                    <li>Prefixes/suffixes (dis-, mis-, non-, -er, -est, -less)</li>
+                    <li>Context clues for homophones and multiple-meaning words</li>
+                    <li>Using dictionaries and glossaries</li>
+                    <li>Understanding idioms and figurative language</li>
+                </ul>
+                <p style="margin-top: 15px;"><strong>What MobyMax Literature Teaches:</strong> Primarily comprehension skills (main idea, character analysis, plot, theme). While valuable, these don't directly address her vocabulary gap.</p>
+                <p style="margin-top: 15px;"><strong>What Was Missing:</strong> A dedicated vocabulary intervention (like VocabLoco or MobyMax Language Vocabulary module) was never assigned despite MAP clearly flagging this need.</p>
+            </div>
+
+            <h4 style="margin: 25px 0 15px;">Grade 3-4 Language Skills in MobyMax (L.3, L.4)</h4>
+            <p style="margin-bottom: 15px;">Gia was also enrolled in MobyMax Language for Grades 3-4. These skills better match her vocabulary needs:</p>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>MobyMax Language Skill</th>
+                        <th>CCSS Standard</th>
+                        <th>Matches MAP Need?</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Use context as clue to word meaning</td>
+                        <td>L.3.4a, L.4.4a</td>
+                        <td style="color: var(--success);">✓ YES - Direct match</td>
+                    </tr>
+                    <tr>
+                        <td>Determine meaning of prefixes/suffixes</td>
+                        <td>L.3.4b, L.4.4b</td>
+                        <td style="color: var(--success);">✓ YES - Direct match</td>
+                    </tr>
+                    <tr>
+                        <td>Use glossaries and dictionaries</td>
+                        <td>L.3.4d, L.4.4c</td>
+                        <td style="color: var(--success);">✓ YES - Direct match</td>
+                    </tr>
+                    <tr>
+                        <td>Distinguish literal vs nonliteral language</td>
+                        <td>L.3.5a</td>
+                        <td style="color: var(--success);">✓ YES - Direct match</td>
+                    </tr>
+                    <tr>
+                        <td>Distinguish shades of meaning</td>
+                        <td>L.3.5c, L.4.5c</td>
+                        <td style="color: var(--success);">✓ YES - Direct match</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="insight-box success">
+                <h4>✅ MobyMax Language Was a Better Fit</h4>
+                <p>The MobyMax <strong>Language</strong> curriculum (which Gia was enrolled in separately) actually aligns well with her MAP vocabulary needs. However, data shows she spent <strong>2,196 XP</strong> in Language vs only <strong>1,262 XP</strong> in Reading. This suggests more time was appropriately spent on Language skills.</p>
+                <p style="margin-top: 15px;"><strong>Result:</strong> By Winter 2026, Gia's Vocabulary score improved from 186 → 212 (+26 RIT), making it her <strong>strongest domain</strong>. The Language curriculum appears to have addressed the gap, even though Reading curriculum didn't directly target it.</p>
+            </div>
+        </section>
+
+        <!-- MAP Alignment -->
+        <section id="map-alignment" class="section">
+            <div class="section-header">
+                <h2>📊 MAP Instructional Areas Alignment</h2>
+            </div>
+
+            <h4 style="margin-bottom: 15px;">Domain Score Progression</h4>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Domain</th>
+                        <th>Winter '25</th>
+                        <th>Fall '25</th>
+                        <th>Winter '26</th>
+                        <th>Change</th>
+                        <th>Curriculum Support?</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Vocabulary</strong></td>
+                        <td style="color: var(--danger);">186</td>
+                        <td>199</td>
+                        <td style="color: var(--success);">212</td>
+                        <td style="color: var(--success);">+26 ✓</td>
+                        <td>MobyMax Language (indirect)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Informational Text</strong></td>
+                        <td>203*</td>
+                        <td style="color: var(--danger);">188</td>
+                        <td>206</td>
+                        <td>+3</td>
+                        <td>MobyMax Info 3 (minimal)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Literary Text</strong></td>
+                        <td>203*</td>
+                        <td>204</td>
+                        <td>205</td>
+                        <td>+2</td>
+                        <td>TeachTales, MobyMax Lit</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Foundational Skills</strong></td>
+                        <td>206</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>ClearFluency (late addition)</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="font-size: 0.85rem; color: var(--gray);">*Winter '25 reported as "Literature and Informational Text" combined at 203</p>
+
+            <div class="insight-box">
+                <h4>📈 Key Insight: Vocabulary Gap Closed Despite Curriculum Mismatch</h4>
+                <p>Despite the Reading curriculum not directly targeting vocabulary, Gia's vocabulary score improved dramatically (+26 RIT). This appears to be due to:</p>
+                <ol style="margin-top: 10px; margin-left: 20px; line-height: 2;">
+                    <li><strong>MobyMax Language</strong> (Grade 3-4) provided direct vocabulary instruction</li>
+                    <li><strong>Cross-curricular transfer</strong> from language skills to reading assessment</li>
+                    <li><strong>Natural maturation</strong> and general reading exposure</li>
+                </ol>
+                <p style="margin-top: 15px;"><strong>However:</strong> Literary Text (+2) and Informational Text (+3) showed minimal growth—these are the areas where the too-difficult Reading curriculum likely hindered progress.</p>
+            </div>
+        </section>
+
+        <!-- Recommendations -->
+        <section id="recommendations" class="section">
+            <div class="section-header">
+                <h2>🎯 Recommendations</h2>
+                <span class="badge badge-success">Prioritized Action Items</span>
+            </div>
+
+            <div style="display: grid; gap: 20px;">
+                <div style="border: 2px solid var(--danger); border-radius: 12px; padding: 20px;">
+                    <h4 style="color: var(--danger);">🔴 CRITICAL: ORF-Based Rostering</h4>
+                    <p style="margin-top: 10px;">Gia must achieve <strong>104 WCPM at 95% accuracy on Level M text</strong> before being placed in any Grade 3 content. Until then:</p>
+                    <ul style="margin-top: 10px; margin-left: 20px;">
+                        <li>Keep in ClearFluency Grade 2</li>
+                        <li>Remove from all Grade 3+ Reading content</li>
+                        <li>Weekly Literably assessments to track progress</li>
+                    </ul>
+                </div>
+
+                <div style="border: 2px solid var(--danger); border-radius: 12px; padding: 20px;">
+                    <h4 style="color: var(--danger);">🔴 CRITICAL: Remove TeachTales</h4>
+                    <p style="margin-top: 10px;">TeachTales is ineffective for a student with fluency gaps:</p>
+                    <ul style="margin-top: 10px; margin-left: 20px;">
+                        <li>Silent reading doesn't build fluency</li>
+                        <li>No time tracking = unverifiable engagement</li>
+                        <li>ORF and comprehension <strong>declined</strong> during usage</li>
+                        <li>Replace with monitored oral reading practice</li>
+                    </ul>
+                </div>
+
+                <div style="border: 2px solid var(--warning); border-radius: 12px; padding: 20px;">
+                    <h4 style="color: var(--warning);">🟡 HIGH: Increase Reading Time</h4>
+                    <p style="margin-top: 10px;">Current: 8 min/day → Target: 25 min/day</p>
+                    <ul style="margin-top: 10px; margin-left: 20px;">
+                        <li>Block dedicated reading time (not flexible)</li>
+                        <li>Reduce math time if needed (currently 16 min/day)</li>
+                        <li>Focus additional time on ClearFluency</li>
+                    </ul>
+                </div>
+
+                <div style="border: 2px solid var(--warning); border-radius: 12px; padding: 20px;">
+                    <h4 style="color: var(--warning);">🟡 HIGH: Narrow MobyMax Grade Band</h4>
+                    <p style="margin-top: 10px;">Replace "Literature 3-8" with "Literature 2" or "Literature 2-3":</p>
+                    <ul style="margin-top: 10px; margin-left: 20px;">
+                        <li>Eliminates wild accuracy swings (20%-95%)</li>
+                        <li>Ensures consistent challenge level</li>
+                        <li>Better XP:Min ratio predictability</li>
+                    </ul>
+                </div>
+
+                <div style="border: 2px solid var(--success); border-radius: 12px; padding: 20px;">
+                    <h4 style="color: var(--success);">🟢 CONTINUE: ClearFluency Grade 2</h4>
+                    <p style="margin-top: 10px;">This is working well:</p>
+                    <ul style="margin-top: 10px; margin-left: 20px;">
+                        <li>85% accuracy = appropriate challenge</li>
+                        <li>1.12:1 XP ratio = optimal efficiency</li>
+                        <li>Increase from 15% → 40% of reading time</li>
+                    </ul>
+                </div>
+
+                <div style="border: 2px solid var(--success); border-radius: 12px; padding: 20px;">
+                    <h4 style="color: var(--success);">🟢 CONTINUE: MobyMax Language</h4>
+                    <p style="margin-top: 10px;">Vocabulary improvement shows this is working:</p>
+                    <ul style="margin-top: 10px; margin-left: 20px;">
+                        <li>186 → 212 vocabulary growth</li>
+                        <li>Skills align with MAP needs</li>
+                        <li>Maintain current enrollment</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Curriculum Changes -->
+        <section id="curriculum-changes" class="section">
+            <div class="section-header">
+                <h2>📝 Required Curriculum Changes</h2>
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Current State</th>
+                        <th>Required Change</th>
+                        <th>Rationale</th>
+                        <th>Priority</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>TeachTales Third Grade</td>
+                        <td style="color: var(--danger); font-weight: 600;">REMOVE</td>
+                        <td>Silent reading ineffective for fluency; ORF declined</td>
+                        <td><span class="badge badge-danger">Critical</span></td>
+                    </tr>
+                    <tr>
+                        <td>MobyMax Literature 3-8</td>
+                        <td style="color: var(--warning); font-weight: 600;">Replace with Lit 2 or 2-3</td>
+                        <td>Grade band too wide; causes accuracy swings</td>
+                        <td><span class="badge badge-warning">High</span></td>
+                    </tr>
+                    <tr>
+                        <td>ClearFluency G2 (15% of time)</td>
+                        <td style="color: var(--success); font-weight: 600;">Increase to 40%</td>
+                        <td>Only app at correct level with good results</td>
+                        <td><span class="badge badge-warning">High</span></td>
+                    </tr>
+                    <tr>
+                        <td>No ORF gate for Grade 3</td>
+                        <td style="color: var(--danger); font-weight: 600;">Implement 104 WCPM requirement</td>
+                        <td>Prevent future misrostering</td>
+                        <td><span class="badge badge-danger">Critical</span></td>
+                    </tr>
+                    <tr>
+                        <td>8 min/day reading</td>
+                        <td style="color: var(--warning); font-weight: 600;">Enforce 25 min/day</td>
+                        <td>Currently at 32% of target</td>
+                        <td><span class="badge badge-warning">High</span></td>
+                    </tr>
+                    <tr>
+                        <td>No summer reading program</td>
+                        <td style="color: var(--warning); font-weight: 600;">Implement 15 min/day summer req</td>
+                        <td>Prevent -10 RIT summer regression</td>
+                        <td><span class="badge badge-warning">High</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="insight-box success" style="margin-top: 25px;">
+                <h4>📈 Expected Outcome with Changes</h4>
+                <p>With proper rostering and increased time on grade-appropriate content:</p>
+                <ul style="margin-top: 10px; margin-left: 20px;">
+                    <li><strong>ORF:</strong> Should reach 104 WCPM within 8-12 weeks</li>
+                    <li><strong>MAP Growth:</strong> Fall-to-winter pattern (2.75x) can be sustained year-round</li>
+                    <li><strong>2x Goal:</strong> Achievable if reading time increases to 25 min/day and summer slide is prevented</li>
+                    <li><strong>Accountability:</strong> Clear ORF gates prevent future academic fault situations</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <div style="text-align: center; padding: 40px; color: var(--gray); font-size: 0.85rem;">
+            <p>Report generated for Alpha School Austin • Student ID: 001-0608</p>
+            <p style="margin-top: 5px;">Data sources: NWEA MAP, TimeBack, Literably, ClearFluency Reports, Deep Dive Dashboard</p>
+            <p style="margin-top: 5px;">Analysis Date: February 2, 2026 | Report Version: 3.0</p>
+            <p style="margin-top: 10px;"><strong>Key Findings:</strong></p>
+            <p>1. ~20 hours wasted due to misrostering (Academic Fault)</p>
+            <p>2. 68% of ClearFluency time is idle ("Other")</p>
+            <p>3. Daily targets met on active days (45.7 XP, 32.9 min vs 25/25 targets)</p>
+        </div>
+    </main>
+
+    <script>
+        // Smooth scrolling for navigation
+        document.querySelectorAll('.nav a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                document.querySelectorAll('.nav a').forEach(a => a.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Highlight current section on scroll
+        window.addEventListener('scroll', function() {
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('.nav a');
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (scrollY >= sectionTop - 100) {
+                    current = section.getAttribute('id');
+                }
+            });
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

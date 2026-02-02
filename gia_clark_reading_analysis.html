@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gia Clark - Reading Deep Dive Analysis</title>
+    <style>
+        :root {
+            --primary: #1a365d;
+            --secondary: #2c5282;
+            --accent: #3182ce;
+            --success: #38a169;
+            --warning: #d69e2e;
+            --danger: #e53e3e;
+            --light: #f7fafc;
+            --dark: #1a202c;
+            --gray: #718096;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        /* Navigation */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            height: 100vh;
+            background: var(--primary);
+            color: white;
+            padding: 20px 0;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .nav-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+
+        .nav-header h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .nav-header p {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        .nav-section {
+            padding: 10px 20px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.6;
+            margin-top: 15px;
+        }
+
+        .nav a {
+            display: block;
+            padding: 12px 20px;
+            color: white;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav a:hover, .nav a.active {
+            background: rgba(255,255,255,0.1);
+            border-left-color: var(--accent);
+        }
+
+        .nav a .indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .indicator.red { background: var(--danger); }
+        .indicator.yellow { background: var(--warning); }
+        .indicator.green { background: var(--success); }
+
+        /* Main Content */
+        .main {
+            margin-left: 250px;
+            padding: 30px 40px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 40px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .header-meta {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .header-meta-item {
+            background: rgba(255,255,255,0.15);
+            padding: 15px 25px;
+            border-radius: 8px;
+        }
+
+        .header-meta-item label {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            display: block;
+        }
+
+        .header-meta-item span {
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        /* Section Styles */
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--light);
+        }
+
+        .section-header h2 {
+            font-size: 1.4rem;
+            color: var(--primary);
+        }
+
+        .badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .badge-danger { background: #fed7d7; color: var(--danger); }
+        .badge-warning { background: #fefcbf; color: #975a16; }
+        .badge-success { background: #c6f6d5; color: #276749; }
+        .badge-info { background: #bee3f8; color: #2c5282; }
+
+        /* Executive Summary Cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-left: 4px solid var(--accent);
+        }
+
+        .summary-card.critical { border-left-color: var(--danger); }
+        .summary-card.warning { border-left-color: var(--warning); }
+        .summary-card.success { border-left-color: var(--success); }
+
+        .summary-card label {
+            font-size: 0.85rem;
+            color: var(--gray);
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .summary-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .summary-card .subtext {
+            font-size: 0.85rem;
+            color: var(--gray);
+            margin-top: 5px;
+        }
+
+        /* Data Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .data-table th {
+            background: var(--light);
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table td {
+            padding: 15px;
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        .data-table tr:hover {
+            background: #f8fafc;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e2e8f0;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 25px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -26px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: 2px solid white;
+            box-shadow: 0 0 0 3px var(--accent);
+        }
+
+        .timeline-item.highlight::before {
+            background: var(--danger);
+            box-shadow: 0 0 0 3px var(--danger);
+        }
+
+        .timeline-date {
+            font-size: 0.85rem;
+            color: var(--gray);
+            margin-bottom: 5px;
+        }
+
+        .timeline-content {
+            background: var(--light);
+            padding: 15px 20px;
+            border-radius: 8px;
+        }
+
+        /* Charts */
+        .chart-container {
+            margin: 20px 0;
+        }
+
+        .bar-chart {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .bar-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .bar-label {
+            width: 120px;
+            font-size: 0.9rem;
+            text-align: right;
+        }
+
+        .bar-container {
+            flex: 1;
+            height: 30px;
+            background: #e2e8f0;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .bar {
+            height: 100%;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            color: white;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: width 0.5s ease;
+        }
+
+        .bar.blue { background: linear-gradient(90deg, #4299e1, #3182ce); }
+        .bar.green { background: linear-gradient(90deg, #48bb78, #38a169); }
+        .bar.yellow { background: linear-gradient(90deg, #ecc94b, #d69e2e); }
+        .bar.red { background: linear-gradient(90deg, #fc8181, #e53e3e); }
+
+        /* Score Display */
+        .score-display {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            padding: 20px;
+            background: var(--light);
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .score-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+        }
+
+        .score-circle.high { background: linear-gradient(135deg, #48bb78, #38a169); }
+        .score-circle.medium { background: linear-gradient(135deg, #ecc94b, #d69e2e); }
+        .score-circle.low { background: linear-gradient(135deg, #fc8181, #e53e3e); }
+
+        .score-circle .number {
+            font-size: 1.8rem;
+        }
+
+        .score-circle .label {
+            font-size: 0.7rem;
+            opacity: 0.9;
+        }
+
+        /* Insight Box */
+        .insight-box {
+            background: linear-gradient(135deg, #ebf8ff, #bee3f8);
+            border-left: 4px solid var(--accent);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .insight-box.critical {
+            background: linear-gradient(135deg, #fff5f5, #fed7d7);
+            border-left-color: var(--danger);
+        }
+
+        .insight-box.warning {
+            background: linear-gradient(135deg, #fffff0, #fefcbf);
+            border-left-color: var(--warning);
+        }
+
+        .insight-box.success {
+            background: linear-gradient(135deg, #f0fff4, #c6f6d5);
+            border-left-color: var(--success);
+        }
+
+        .insight-box h4 {
+            margin-bottom: 10px;
+            color: var(--dark);
+        }
+
+        /* Recommendation Cards */
+        .rec-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .rec-card {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 25px;
+            transition: all 0.3s;
+        }
+
+        .rec-card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .rec-card .priority {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .rec-card .priority.high { background: #fed7d7; color: var(--danger); }
+        .rec-card .priority.medium { background: #fefcbf; color: #975a16; }
+        .rec-card .priority.low { background: #c6f6d5; color: #276749; }
+
+        .rec-card h4 {
+            margin-bottom: 10px;
+        }
+
+        .rec-card p {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        /* Comparison Grid */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 20px 0;
+        }
+
+        .comparison-box {
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .comparison-box.expected {
+            background: #e2e8f0;
+        }
+
+        .comparison-box.actual {
+            background: #fed7d7;
+        }
+
+        .comparison-box.actual.positive {
+            background: #c6f6d5;
+        }
+
+        .comparison-box label {
+            font-size: 0.85rem;
+            color: var(--gray);
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .comparison-box .value {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        /* Fluency Data */
+        .fluency-table {
+            margin-top: 20px;
+        }
+
+        .fluency-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+            gap: 15px;
+            padding: 15px;
+            border-bottom: 1px solid #e2e8f0;
+            align-items: center;
+        }
+
+        .fluency-row.header {
+            background: var(--light);
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--gray);
+        }
+
+        /* Progress Indicator */
+        .progress-bar {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 0.95rem;
+            color: var(--gray);
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            color: var(--accent);
+        }
+
+        .tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* App Usage Grid */
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .app-card {
+            background: var(--light);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .app-card h4 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .app-stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.9rem;
+        }
+
+        .app-stat:last-child {
+            border-bottom: none;
+        }
+
+        /* Skill Gap Analysis */
+        .skill-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .skill-item {
+            background: var(--light);
+            padding: 15px;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .skill-item .skill-name {
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .skill-item .skill-score {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .skill-item.critical { border-left: 4px solid var(--danger); }
+        .skill-item.warning { border-left: 4px solid var(--warning); }
+        .skill-item.good { border-left: 4px solid var(--success); }
+
+        /* Print Styles */
+        @media print {
+            .nav { display: none; }
+            .main { margin-left: 0; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+            .main {
+                margin-left: 0;
+            }
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-header">
+            <h2>📊 Student Deep Dive</h2>
+            <p>Gia Clark • Grade 2 • Reading</p>
+        </div>
+
+        <div class="nav-section">Overview</div>
+        <a href="#executive-summary"><span class="indicator red"></span>Executive Summary</a>
+        <a href="#key-findings"><span class="indicator red"></span>Key Findings</a>
+
+        <div class="nav-section">MAP Performance</div>
+        <a href="#map-trajectory"><span class="indicator yellow"></span>Growth Trajectory</a>
+        <a href="#map-domains"><span class="indicator red"></span>Domain Analysis</a>
+        <a href="#growth-comparison"><span class="indicator yellow"></span>Growth vs Predicted</a>
+
+        <div class="nav-section">Curriculum Analysis</div>
+        <a href="#rostering"><span class="indicator red"></span>Rostering Issues</a>
+        <a href="#app-usage"><span class="indicator yellow"></span>App & Time Analysis</a>
+        <a href="#skill-gaps"><span class="indicator red"></span>Skill Gap Analysis</a>
+
+        <div class="nav-section">Fluency Data</div>
+        <a href="#fluency"><span class="indicator yellow"></span>ORF Results</a>
+
+        <div class="nav-section">Recommendations</div>
+        <a href="#recommendations"><span class="indicator green"></span>Action Items</a>
+        <a href="#curriculum-changes"><span class="indicator green"></span>Curriculum Changes</a>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main">
+        <!-- Header -->
+        <div class="header">
+            <h1>Reading Performance Deep Dive</h1>
+            <p>Comprehensive analysis of learning gaps and curriculum alignment for optimal growth</p>
+            <div class="header-meta">
+                <div class="header-meta-item">
+                    <label>Student</label>
+                    <span>Gia Clark</span>
+                </div>
+                <div class="header-meta-item">
+                    <label>Grade Level</label>
+                    <span>Grade 2</span>
+                </div>
+                <div class="header-meta-item">
+                    <label>Analysis Period</label>
+                    <span>Winter '25 → Winter '26</span>
+                </div>
+                <div class="header-meta-item">
+                    <label>Report Date</label>
+                    <span>February 2, 2026</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Executive Summary -->
+        <section id="executive-summary" class="section">
+            <div class="section-header">
+                <h2>📋 Executive Summary</h2>
+                <span class="badge badge-danger">Below Expected Growth</span>
+            </div>
+
+            <div class="summary-grid">
+                <div class="summary-card warning">
+                    <label>Winter-to-Winter Growth</label>
+                    <span class="value">+8 RIT</span>
+                    <span class="subtext">200 → 208 (Expected: +12)</span>
+                </div>
+                <div class="summary-card critical">
+                    <label>Growth vs Projection</label>
+                    <span class="value">67%</span>
+                    <span class="subtext">0.67x of NWEA projected growth</span>
+                </div>
+                <div class="summary-card success">
+                    <label>Achievement Percentile</label>
+                    <span class="value">97th</span>
+                    <span class="subtext">High achievement maintained</span>
+                </div>
+                <div class="summary-card warning">
+                    <label>Growth Percentile</label>
+                    <span class="value">79th</span>
+                    <span class="subtext">Down from 78th in Grade 1</span>
+                </div>
+            </div>
+
+            <div class="insight-box critical">
+                <h4>⚠️ Critical Finding: Growth Below 2x Target</h4>
+                <p>Gia achieved only <strong>0.67x</strong> of NWEA's projected growth (8 RIT actual vs 12 RIT projected). While her achievement remains high (97th percentile), she is not on track to achieve 2x growth. The primary issues are <strong>insufficient time on reading</strong> (32% of daily target) and <strong>vocabulary skill gaps</strong> that were not adequately addressed by the curriculum.</p>
+            </div>
+        </section>
+
+        <!-- Key Findings -->
+        <section id="key-findings" class="section">
+            <div class="section-header">
+                <h2>🔍 Key Findings</h2>
+            </div>
+
+            <div class="timeline">
+                <div class="timeline-item highlight">
+                    <div class="timeline-date">Critical Issue #1</div>
+                    <div class="timeline-content">
+                        <h4>Severe Under-Investment in Reading Time</h4>
+                        <p>Gia spent only <strong>52.2 hours</strong> on Reading over the analysis period, averaging just <strong>8 minutes/weekday</strong> (32% of the 25-minute target). This is the lowest time commitment across all subjects.</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item highlight">
+                    <div class="timeline-date">Critical Issue #2</div>
+                    <div class="timeline-content">
+                        <h4>Vocabulary Gap Not Addressed</h4>
+                        <p>MAP identified <strong>Vocabulary Use and Functions</strong> as her weakest area (186 RIT in Winter '25, only improved to 212 by Winter '26). Despite this, she was rostered in Grade 3 Literature content rather than targeted vocabulary intervention.</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-date">Issue #3</div>
+                    <div class="timeline-content">
+                        <h4>Fall Regression (Summer Slide Effect)</h4>
+                        <p>RIT dropped from <strong>200 → 197</strong> between Winter '25 and Fall '25, indicating learning loss. The conditional growth index for Fall '24 to Fall '25 was <strong>-0.41</strong> (grew less than peers).</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-date">Issue #4</div>
+                    <div class="timeline-content">
+                        <h4>Missing Upper Bound for Bracketing</h4>
+                        <p>Gia's bracketing status shows "Needs upper bound" for Reading, meaning the curriculum level may not be properly calibrated to her optimal challenge zone.</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-date">Positive Finding</div>
+                    <div class="timeline-content">
+                        <h4>Strong Recovery in Fall-to-Winter Period</h4>
+                        <p>Despite earlier struggles, Gia achieved <strong>2.75x</strong> of projected fall-to-winter growth (+11 RIT actual vs +4 projected), suggesting responsive intervention in the recent period.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MAP Trajectory -->
+        <section id="map-trajectory" class="section">
+            <div class="section-header">
+                <h2>📈 MAP Growth Trajectory</h2>
+                <span class="badge badge-warning">Mixed Results</span>
+            </div>
+
+            <div class="chart-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Assessment Period</th>
+                            <th>RIT Score</th>
+                            <th>Change</th>
+                            <th>Percentile</th>
+                            <th>Lexile Range</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Spring 2025</strong> (Grade 1)</td>
+                            <td>207</td>
+                            <td>—</td>
+                            <td>99th (Achievement)</td>
+                            <td>725L - 875L</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Winter 2025</strong> (Grade 1)</td>
+                            <td>200</td>
+                            <td style="color: var(--danger);">-7</td>
+                            <td>99th (Achievement)</td>
+                            <td>590L - 740L</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Fall 2025</strong> (Grade 2)</td>
+                            <td>197</td>
+                            <td style="color: var(--danger);">-3</td>
+                            <td>95th (Achievement), 34th (Growth)</td>
+                            <td>530L - 680L</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Winter 2026</strong> (Grade 2)</td>
+                            <td>208</td>
+                            <td style="color: var(--success);">+11</td>
+                            <td>97th (Achievement), 79th (Growth)</td>
+                            <td>745L - 895L</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="comparison-grid">
+                <div class="comparison-box expected">
+                    <label>NWEA Projected Growth (Winter to Winter)</label>
+                    <div class="value">+12 RIT</div>
+                    <p style="margin-top: 10px; font-size: 0.9rem; color: var(--gray);">Standard 1-year projection</p>
+                </div>
+                <div class="comparison-box actual">
+                    <label>Actual Growth Achieved</label>
+                    <div class="value">+8 RIT</div>
+                    <p style="margin-top: 10px; font-size: 0.9rem; color: var(--danger);">67% of projection (0.67x)</p>
+                </div>
+            </div>
+
+            <div class="insight-box warning">
+                <h4>📊 Growth Pattern Analysis</h4>
+                <p>The trajectory shows a concerning pattern: Gia <strong>regressed</strong> from Spring '25 to Fall '25 (-10 RIT total), then showed <strong>strong recovery</strong> from Fall '25 to Winter '26 (+11 RIT). This suggests summer learning loss and potential initial rostering issues that were later corrected. The 2.75x fall-to-winter multiplier indicates the recent intervention approach is working.</p>
+            </div>
+        </section>
+
+        <!-- MAP Domains -->
+        <section id="map-domains" class="section">
+            <div class="section-header">
+                <h2>🎯 Domain-Level Analysis</h2>
+                <span class="badge badge-danger">Vocabulary Gap Persists</span>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('winter25')">Winter 2025</button>
+                <button class="tab" onclick="showTab('fall25')">Fall 2025</button>
+                <button class="tab" onclick="showTab('winter26')">Winter 2026</button>
+            </div>
+
+            <div id="winter25" class="tab-content active">
+                <h4 style="margin-bottom: 15px;">Winter 2024-25 Domain Scores (Grade 1)</h4>
+                <div class="bar-chart">
+                    <div class="bar-row">
+                        <div class="bar-label">Vocabulary</div>
+                        <div class="bar-container">
+                            <div class="bar red" style="width: 88%;">186</div>
+                        </div>
+                    </div>
+                    <div class="bar-row">
+                        <div class="bar-label">Lit & Info Text</div>
+                        <div class="bar-container">
+                            <div class="bar yellow" style="width: 96%;">203</div>
+                        </div>
+                    </div>
+                    <div class="bar-row">
+                        <div class="bar-label">Foundational</div>
+                        <div class="bar-container">
+                            <div class="bar green" style="width: 98%;">206</div>
+                        </div>
+                    </div>
+                    <div class="bar-row">
+                        <div class="bar-label">Language/Writing</div>
+                        <div class="bar-container">
+                            <div class="bar green" style="width: 100%;">212</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="insight-box critical" style="margin-top: 20px;">
+                    <h4>⚠️ Suggested Area of Focus: Vocabulary Use and Functions (186)</h4>
+                    <p>This was flagged by NWEA as the primary area needing development, 20 points below the overall RIT.</p>
+                </div>
+            </div>
+
+            <div id="fall25" class="tab-content">
+                <h4 style="margin-bottom: 15px;">Fall 2025-26 Domain Scores (Grade 2)</h4>
+                <div class="bar-chart">
+                    <div class="bar-row">
+                        <div class="bar-label">Info Text</div>
+                        <div class="bar-container">
+                            <div class="bar red" style="width: 89%;">188</div>
+                        </div>
+                    </div>
+                    <div class="bar-row">
+                        <div class="bar-label">Vocabulary</div>
+                        <div class="bar-container">
+                            <div class="bar yellow" style="width: 94%;">199</div>
+                        </div>
+                    </div>
+                    <div class="bar-row">
+                        <div class="bar-label">Literary Text</div>
+                        <div class="bar-container">
+                            <div class="bar green" style="width: 97%;">204</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="insight-box warning" style="margin-top: 20px;">
+                    <h4>📉 New Weakness Emerged: Informational Text (188)</h4>
+                    <p>Vocabulary improved slightly (+13), but Informational Text dropped significantly and became the suggested focus area.</p>
+                </div>
+            </div>
+
+            <div id="winter26" class="tab-content">
+                <h4 style="margin-bottom: 15px;">Winter 2025-26 Domain Scores (Grade 2)</h4>
+                <div class="bar-chart">
+                    <div class="bar-row">
+                        <div class="bar-label">Literary Text</div>
+                        <div class="bar-container">
+                            <div class="bar yellow" style="width: 96%;">205</div>
+                        </div>
+                    </div>
+                    <div class="bar-row">
+                        <div class="bar-label">Info Text</div>
+                        <div class="bar-container">
+                            <div class="bar green" style="width: 97%;">206</div>
+                        </div>
+                    </div>
+                    <div class="bar-row">
+                        <div class="bar-label">Vocabulary</div>
+                        <div class="bar-container">
+                            <div class="bar green" style="width: 100%;">212</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="insight-box success" style="margin-top: 20px;">
+                    <h4>✅ Significant Improvement Across All Domains</h4>
+                    <p>Vocabulary jumped from 199 → 212 (+13), Informational Text recovered 188 → 206 (+18). Domains are now more balanced.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Growth Comparison -->
+        <section id="growth-comparison" class="section">
+            <div class="section-header">
+                <h2>⚖️ Growth vs. Prediction Analysis</h2>
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Period</th>
+                        <th>Projected Growth</th>
+                        <th>Actual Growth</th>
+                        <th>Multiplier</th>
+                        <th>Conditional Growth Index</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Fall '24 → Spring '25</td>
+                        <td>+5 RIT</td>
+                        <td>+13 RIT</td>
+                        <td style="color: var(--success); font-weight: 600;">2.6x ✓</td>
+                        <td>0.76 (above average)</td>
+                    </tr>
+                    <tr>
+                        <td>Fall '24 → Winter '25</td>
+                        <td>+1 RIT</td>
+                        <td>+6 RIT</td>
+                        <td style="color: var(--success); font-weight: 600;">6.0x ✓</td>
+                        <td>0.76 (above average)</td>
+                    </tr>
+                    <tr style="background: #fff5f5;">
+                        <td>Fall '24 → Fall '25</td>
+                        <td>+9 RIT</td>
+                        <td>+3 RIT</td>
+                        <td style="color: var(--danger); font-weight: 600;">0.33x ✗</td>
+                        <td>-0.41 (below average)</td>
+                    </tr>
+                    <tr>
+                        <td>Fall '25 → Winter '26</td>
+                        <td>+4 RIT</td>
+                        <td>+11 RIT</td>
+                        <td style="color: var(--success); font-weight: 600;">2.75x ✓</td>
+                        <td>0.81 (above average)</td>
+                    </tr>
+                    <tr style="background: #fffff0;">
+                        <td><strong>Winter '25 → Winter '26</strong></td>
+                        <td><strong>+12 RIT</strong></td>
+                        <td><strong>+8 RIT</strong></td>
+                        <td style="color: var(--warning); font-weight: 600;">0.67x ⚠️</td>
+                        <td>—</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="insight-box warning">
+                <h4>🔑 Key Insight: Summer Slide Was the Primary Growth Killer</h4>
+                <p>Gia's in-year growth has consistently exceeded projections (2.6x, 6.0x, 2.75x). However, the <strong>summer regression</strong> from Spring '25 to Fall '25 (-10 RIT) wiped out gains and resulted in below-projection year-over-year growth. Without summer slide, her Winter '25 → Winter '26 growth would have been approximately +18 RIT (1.5x projection).</p>
+            </div>
+        </section>
+
+        <!-- Rostering Issues -->
+        <section id="rostering" class="section">
+            <div class="section-header">
+                <h2>📚 Rostering Analysis</h2>
+                <span class="badge badge-danger">Misalignment Detected</span>
+            </div>
+
+            <h4 style="margin-bottom: 15px;">Current Enrollments</h4>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>App</th>
+                        <th>Course</th>
+                        <th>Course Grade</th>
+                        <th>Student Grade</th>
+                        <th>XP Earned</th>
+                        <th>Active Minutes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>ClearFluency</td>
+                        <td>Grade 2 Hole-Filling</td>
+                        <td>2</td>
+                        <td>2</td>
+                        <td>535</td>
+                        <td>479 min</td>
+                    </tr>
+                    <tr>
+                        <td>Alpha Read</td>
+                        <td>Core Knowledge Grade 3/3</td>
+                        <td>3</td>
+                        <td>2</td>
+                        <td>89</td>
+                        <td>387 min</td>
+                    </tr>
+                    <tr style="background: #fff5f5;">
+                        <td>MobyMax</td>
+                        <td>Reading Skills Literature 3-8</td>
+                        <td>3-8</td>
+                        <td>2</td>
+                        <td>872</td>
+                        <td>545 min</td>
+                    </tr>
+                    <tr>
+                        <td>MobyMax</td>
+                        <td>Reading Skills Literature 3 Hole-Filling</td>
+                        <td>3</td>
+                        <td>2</td>
+                        <td>320</td>
+                        <td>329 min</td>
+                    </tr>
+                    <tr>
+                        <td>MobyMax</td>
+                        <td>Reading Skills Informational 3</td>
+                        <td>3</td>
+                        <td>2</td>
+                        <td>70</td>
+                        <td>14 min</td>
+                    </tr>
+                    <tr style="background: #fffff0;">
+                        <td>TeachTales</td>
+                        <td>TeachTales (Third grade)</td>
+                        <td>3</td>
+                        <td>2</td>
+                        <td>2,457</td>
+                        <td>1,367 min</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="insight-box critical" style="margin-top: 20px;">
+                <h4>⚠️ Rostering Problem #1: Heavy Literature Focus, Light Vocabulary</h4>
+                <p>Despite MAP identifying <strong>Vocabulary</strong> as her weakest domain (186 RIT), Gia was primarily rostered in Literature courses. TeachTales (1,367 minutes) and MobyMax Literature (874 minutes combined) dominated her time, while <strong>no dedicated vocabulary intervention</strong> was assigned.</p>
+            </div>
+
+            <div class="insight-box warning" style="margin-top: 15px;">
+                <h4>⚠️ Rostering Problem #2: Missing Upper Bound</h4>
+                <p>Bracketing status shows Reading "Needs upper bound." Without proper bracketing, the system cannot optimally place her at the right challenge level. She has a lower bound (Grade 2) but needs assessment to establish upper bound.</p>
+            </div>
+
+            <div class="insight-box" style="margin-top: 15px;">
+                <h4>📊 Rostering Problem #3: Wide Grade Range Content</h4>
+                <p>MobyMax "Reading Skills Literature 3-8" has a very wide grade band. For a Grade 2 student, this may be too variable—some content is appropriately challenging while other content may be frustratingly difficult, leading to inconsistent accuracy (ranging from 30% to 95% across sessions).</p>
+            </div>
+        </section>
+
+        <!-- App Usage -->
+        <section id="app-usage" class="section">
+            <div class="section-header">
+                <h2>⏱️ Time & App Usage Analysis</h2>
+                <span class="badge badge-danger">Below Target</span>
+            </div>
+
+            <div class="comparison-grid">
+                <div class="comparison-box expected">
+                    <label>Daily Target (Reading)</label>
+                    <div class="value">25 min</div>
+                </div>
+                <div class="comparison-box actual">
+                    <label>Actual Average</label>
+                    <div class="value">8 min</div>
+                    <p style="margin-top: 10px; font-size: 0.9rem; color: var(--danger);">32% of target</p>
+                </div>
+            </div>
+
+            <h4 style="margin: 25px 0 15px;">Subject Time Comparison</h4>
+            <div class="bar-chart">
+                <div class="bar-row">
+                    <div class="bar-label">Math</div>
+                    <div class="bar-container">
+                        <div class="bar green" style="width: 65%;">106.5 hrs (65%)</div>
+                    </div>
+                </div>
+                <div class="bar-row">
+                    <div class="bar-label">Language</div>
+                    <div class="bar-container">
+                        <div class="bar green" style="width: 60%;">97.5 hrs (60%)</div>
+                    </div>
+                </div>
+                <div class="bar-row">
+                    <div class="bar-label">Reading</div>
+                    <div class="bar-container">
+                        <div class="bar red" style="width: 32%;">52.2 hrs (32%)</div>
+                    </div>
+                </div>
+            </div>
+
+            <h4 style="margin: 30px 0 15px;">Reading App Breakdown</h4>
+            <div class="app-grid">
+                <div class="app-card">
+                    <h4>📖 TeachTales</h4>
+                    <div class="app-stat">
+                        <span>Active Minutes</span>
+                        <strong>1,367 min</strong>
+                    </div>
+                    <div class="app-stat">
+                        <span>XP Earned</span>
+                        <strong>2,457</strong>
+                    </div>
+                    <div class="app-stat">
+                        <span>Avg Accuracy</span>
+                        <strong>~60-70%</strong>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 44%; background: var(--accent);"></div>
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--gray); margin-top: 5px;">44% of reading time</p>
+                </div>
+
+                <div class="app-card">
+                    <h4>📚 MobyMax</h4>
+                    <div class="app-stat">
+                        <span>Active Minutes</span>
+                        <strong>888 min</strong>
+                    </div>
+                    <div class="app-stat">
+                        <span>XP Earned</span>
+                        <strong>1,262</strong>
+                    </div>
+                    <div class="app-stat">
+                        <span>Avg Accuracy</span>
+                        <strong>~55-75%</strong>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 29%; background: var(--warning);"></div>
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--gray); margin-top: 5px;">29% of reading time</p>
+                </div>
+
+                <div class="app-card">
+                    <h4>🎯 ClearFluency</h4>
+                    <div class="app-stat">
+                        <span>Active Minutes</span>
+                        <strong>479 min</strong>
+                    </div>
+                    <div class="app-stat">
+                        <span>XP Earned</span>
+                        <strong>535</strong>
+                    </div>
+                    <div class="app-stat">
+                        <span>Avg Accuracy</span>
+                        <strong>~80-90%</strong>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 15%; background: var(--success);"></div>
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--gray); margin-top: 5px;">15% of reading time</p>
+                </div>
+
+                <div class="app-card">
+                    <h4>📕 Alpha Read</h4>
+                    <div class="app-stat">
+                        <span>Active Minutes</span>
+                        <strong>387 min</strong>
+                    </div>
+                    <div class="app-stat">
+                        <span>XP Earned</span>
+                        <strong>89</strong>
+                    </div>
+                    <div class="app-stat">
+                        <span>Avg Accuracy</span>
+                        <strong>~65-75%</strong>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 12%; background: var(--accent);"></div>
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--gray); margin-top: 5px;">12% of reading time</p>
+                </div>
+            </div>
+
+            <div class="insight-box warning" style="margin-top: 25px;">
+                <h4>📉 Estimated Waste: 30%</h4>
+                <p>The Deep Dive dashboard estimates 30% of Gia's reading time is "wasted" due to anti-patterns or inefficient usage. This is lower than her Language (40%) and Math (40%) waste rates, but still represents approximately <strong>15+ hours of lost learning opportunity</strong> over the period.</p>
+            </div>
+        </section>
+
+        <!-- Skill Gaps -->
+        <section id="skill-gaps" class="section">
+            <div class="section-header">
+                <h2>🧩 Skill Gap Analysis</h2>
+                <span class="badge badge-warning">Multiple Gaps Identified</span>
+            </div>
+
+            <p style="margin-bottom: 20px; color: var(--gray);">Based on MAP instructional areas and daily learning metrics, these are Gia's key skill development needs:</p>
+
+            <h4 style="margin-bottom: 15px;">Winter 2025 → Skill Needs (RIT 181-190 band)</h4>
+            <div class="skill-grid">
+                <div class="skill-item critical">
+                    <div class="skill-name">Prefix/Suffix Understanding</div>
+                    <div class="skill-score">Develop</div>
+                    <p style="font-size: 0.8rem; color: var(--gray); margin-top: 5px;">dis-, mis-, non-, -er, -est, -less</p>
+                </div>
+                <div class="skill-item critical">
+                    <div class="skill-name">Context Clues</div>
+                    <div class="skill-score">Develop</div>
+                    <p style="font-size: 0.8rem; color: var(--gray); margin-top: 5px;">Multiple-meaning words, homophones</p>
+                </div>
+                <div class="skill-item warning">
+                    <div class="skill-name">Figurative Language</div>
+                    <div class="skill-score">Develop</div>
+                    <p style="font-size: 0.8rem; color: var(--gray); margin-top: 5px;">Idioms, nonliteral phrases</p>
+                </div>
+                <div class="skill-item warning">
+                    <div class="skill-name">Reference Materials</div>
+                    <div class="skill-score">Develop</div>
+                    <p style="font-size: 0.8rem; color: var(--gray); margin-top: 5px;">Dictionary, glossary, thesaurus use</p>
+                </div>
+            </div>
+
+            <h4 style="margin: 30px 0 15px;">Winter 2026 → Current Skill Needs (RIT 201-220 band)</h4>
+            <div class="skill-grid">
+                <div class="skill-item warning">
+                    <div class="skill-name">Literary Text Analysis</div>
+                    <div class="skill-score">205</div>
+                    <p style="font-size: 0.8rem; color: var(--gray); margin-top: 5px;">Point of view, characterization, plot analysis</p>
+                </div>
+                <div class="skill-item good">
+                    <div class="skill-name">Informational Text</div>
+                    <div class="skill-score">206</div>
+                    <p style="font-size: 0.8rem; color: var(--gray); margin-top: 5px;">Main idea, text structure, supporting details</p>
+                </div>
+                <div class="skill-item good">
+                    <div class="skill-name">Vocabulary</div>
+                    <div class="skill-score">212</div>
+                    <p style="font-size: 0.8rem; color: var(--gray); margin-top: 5px;">Academic vocabulary, Greek/Latin roots</p>
+                </div>
+            </div>
+
+            <div class="insight-box success" style="margin-top: 25px;">
+                <h4>✅ Progress on Vocabulary Gap</h4>
+                <p>The vocabulary gap identified in Winter '25 (186 RIT, 20 points below overall) has been substantially closed. By Winter '26, Vocabulary (212) is now her <strong>strongest domain</strong>, 4 points above her overall RIT. This suggests the curriculum—despite not being explicitly vocabulary-focused—did address some vocabulary skills indirectly.</p>
+            </div>
+        </section>
+
+        <!-- Fluency -->
+        <section id="fluency" class="section">
+            <div class="section-header">
+                <h2>🗣️ Oral Reading Fluency (Literably)</h2>
+                <span class="badge badge-warning">Declining WCPM</span>
+            </div>
+
+            <div class="fluency-table">
+                <div class="fluency-row header">
+                    <div>Passage</div>
+                    <div>Accuracy</div>
+                    <div>WCPM</div>
+                    <div>Comprehension</div>
+                    <div>Date</div>
+                </div>
+                <div class="fluency-row">
+                    <div><strong>Monkey and Elephant</strong> (K)</div>
+                    <div>98.9%</div>
+                    <div style="color: var(--success); font-weight: 600;">88</div>
+                    <div>5/5</div>
+                    <div>Aug 22, 2025</div>
+                </div>
+                <div class="fluency-row">
+                    <div><strong>Duck for a Day</strong> (M)</div>
+                    <div>83.3%</div>
+                    <div style="color: var(--success); font-weight: 600;">105</div>
+                    <div>5/5</div>
+                    <div>Sep 22, 2025</div>
+                </div>
+                <div class="fluency-row" style="background: #fff5f5;">
+                    <div><strong>The Fro-Yo Yo-Yo Contest</strong> (M)</div>
+                    <div>97.6%</div>
+                    <div style="color: var(--warning); font-weight: 600;">83</div>
+                    <div>3/5</div>
+                    <div>Dec 9, 2025</div>
+                </div>
+            </div>
+
+            <div class="insight-box warning" style="margin-top: 25px;">
+                <h4>📉 Fluency Trend Concern</h4>
+                <p>WCPM dropped from <strong>105 → 83</strong> between September and December, despite increased accuracy. Comprehension also declined (5/5 → 3/5). This may indicate:</p>
+                <ul style="margin-top: 10px; margin-left: 20px;">
+                    <li>Over-focus on accuracy at expense of automaticity</li>
+                    <li>Insufficient fluency practice (ClearFluency was only 15% of reading time)</li>
+                    <li>Text complexity increase not matched by fluency scaffolding</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Recommendations -->
+        <section id="recommendations" class="section">
+            <div class="section-header">
+                <h2>🎯 Action Items</h2>
+                <span class="badge badge-success">Prioritized Recommendations</span>
+            </div>
+
+            <div class="rec-grid">
+                <div class="rec-card">
+                    <span class="priority high">HIGH PRIORITY</span>
+                    <h4>1. Increase Reading Time to Target</h4>
+                    <p>Current: 8 min/day → Target: 25 min/day. This is the single biggest lever. Consider blocking dedicated reading time and reducing flexibility that allows Gia to over-invest in Math (16 min/day).</p>
+                </div>
+
+                <div class="rec-card">
+                    <span class="priority high">HIGH PRIORITY</span>
+                    <h4>2. Establish Upper Bound Bracketing</h4>
+                    <p>Administer appropriate assessment to establish Reading upper bound. This will ensure curriculum is optimally challenging—not too easy (leading to boredom) or too hard (leading to frustration).</p>
+                </div>
+
+                <div class="rec-card">
+                    <span class="priority high">HIGH PRIORITY</span>
+                    <h4>3. Implement Summer Learning Program</h4>
+                    <p>Summer regression (-10 RIT) was the primary growth killer. Implement structured summer reading program with minimum 15 min/day requirement to prevent future learning loss.</p>
+                </div>
+
+                <div class="rec-card">
+                    <span class="priority medium">MEDIUM PRIORITY</span>
+                    <h4>4. Increase Fluency Practice</h4>
+                    <p>ClearFluency time should increase from 15% to 25% of reading time. WCPM decline needs to be addressed with more decodable text practice and repeated reading exercises.</p>
+                </div>
+
+                <div class="rec-card">
+                    <span class="priority medium">MEDIUM PRIORITY</span>
+                    <h4>5. Narrow MobyMax Grade Band</h4>
+                    <p>Replace "Literature 3-8" with grade-appropriate content (Literature 3 or 3-4). The wide grade band leads to inconsistent accuracy and potential frustration.</p>
+                </div>
+
+                <div class="rec-card">
+                    <span class="priority low">LOWER PRIORITY</span>
+                    <h4>6. Monitor Literary Text Skills</h4>
+                    <p>Literary Text (205) is now the relatively weakest domain. Ensure TeachTales and MobyMax content adequately covers point of view, characterization, and plot analysis skills.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Curriculum Changes -->
+        <section id="curriculum-changes" class="section">
+            <div class="section-header">
+                <h2>📝 Recommended Curriculum Changes</h2>
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Current State</th>
+                        <th>Recommended Change</th>
+                        <th>Rationale</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>No dedicated vocabulary curriculum</td>
+                        <td>Add VocabLoco or Wordly Wise enrollment</td>
+                        <td>Proactive vocabulary development; maintain gains</td>
+                    </tr>
+                    <tr>
+                        <td>MobyMax Literature 3-8 (wide band)</td>
+                        <td>Replace with Literature 3-4</td>
+                        <td>More consistent challenge level; better accuracy</td>
+                    </tr>
+                    <tr>
+                        <td>ClearFluency at 15% of time</td>
+                        <td>Increase to 25% of reading time</td>
+                        <td>Address declining WCPM; build automaticity</td>
+                    </tr>
+                    <tr>
+                        <td>TeachTales Grade 3</td>
+                        <td>Continue; add comprehension scaffolds</td>
+                        <td>Comprehension dropped 5/5 → 3/5; needs support</td>
+                    </tr>
+                    <tr>
+                        <td>8 min/day reading average</td>
+                        <td>Enforce 25 min/day minimum</td>
+                        <td>Primary blocker to achieving 2x growth</td>
+                    </tr>
+                    <tr>
+                        <td>No summer program</td>
+                        <td>Implement summer reading requirement</td>
+                        <td>Prevent repeat of -10 RIT summer regression</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="insight-box success" style="margin-top: 25px;">
+                <h4>🎯 Expected Outcome</h4>
+                <p>With these changes, Gia's fall-to-winter growth pattern (2.75x) suggests she can achieve <strong>2x annual growth</strong> if:</p>
+                <ul style="margin-top: 10px; margin-left: 20px;">
+                    <li>Reading time increases to 25 min/day</li>
+                    <li>Summer learning loss is prevented</li>
+                    <li>Curriculum is properly bracketed to her level</li>
+                </ul>
+                <p style="margin-top: 15px;">Her current trajectory (post-intervention) extrapolates to approximately <strong>+22-24 RIT annual growth</strong> if sustained year-round, which would exceed 2x NWEA projections.</p>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <div style="text-align: center; padding: 40px; color: var(--gray); font-size: 0.85rem;">
+            <p>Report generated for Alpha School Austin • Student ID: 001-0608</p>
+            <p style="margin-top: 5px;">Data sources: NWEA MAP, TimeBack, Literably, Deep Dive Dashboard</p>
+            <p style="margin-top: 5px;">Analysis Date: February 2, 2026</p>
+        </div>
+    </main>
+
+    <script>
+        // Tab functionality
+        function showTab(tabId) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            // Remove active from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // Show selected tab content
+            document.getElementById(tabId).classList.add('active');
+            // Add active to clicked tab
+            event.target.classList.add('active');
+        }
+
+        // Smooth scrolling for navigation
+        document.querySelectorAll('.nav a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                // Update active state
+                document.querySelectorAll('.nav a').forEach(a => a.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Highlight current section on scroll
+        window.addEventListener('scroll', function() {
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('.nav a');
+
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (scrollY >= sectionTop - 100) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
